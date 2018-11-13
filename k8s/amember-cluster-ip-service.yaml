@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: amember-cluster-ip-service
+spec:
+  type: ClusterIP
+  selector:
+    component: amember
+  ports:
+    - port: 80
+      targetPort: 80

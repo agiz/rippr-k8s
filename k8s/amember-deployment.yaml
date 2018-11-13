@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: amember-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: amember
+  template:
+    metadata:
+      labels:
+        component: amember
+    spec:
+      containers:
+        - name: amember
+          image: agiz/amember
+          ports:
+            - containerPort: 80
+          env:
+            - name: MYSQL_DB_HOST
+              value: '127.0.0.1'
+            - name: MYSQL_DB_PORT
+              value: '3306'
+            - name: MYSQL_DB_NAME
+              value: 'amember'
+            # [START cloudsql_secrets]
+            - name: MYSQL_DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-db-credentials
+                  key: username
+            - name: MYSQL_DB_PASSWORD
+              valueFrom:
+                  secretKeyRef:
+                    name: mysql-db-credentials
+                    key: password
+            # [END cloudsql_secrets]
+        # [START proxy_container]
+        - name: cloudsql-proxy
+          image: gcr.io/cloudsql-docker/gce-proxy:1.11
+          command: ["/cloud_sql_proxy",
+                    "-instances=rippr-220314:europe-west1:amember-db=tcp:3306",
+                    "-credential_file=/secrets/cloudsql/postgres-credentials.json"]
+          # [START cloudsql_security_context]
+          securityContext:
+            runAsUser: 2  # non-root user
+            allowPrivilegeEscalation: false
+          # [END cloudsql_security_context]
+          volumeMounts:
+            - name: cloudsql-instance-credentials
+              mountPath: /secrets/cloudsql
+              readOnly: true
+        # [END proxy_container]
+      # [START volumes]
+      volumes:
+        - name: cloudsql-instance-credentials
+          secret:
+            secretName: cloudsql-instance-credentials
+      # [END volumes]
