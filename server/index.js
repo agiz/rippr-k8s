@@ -44,8 +44,8 @@ app.get('/values/check', async (req, res) => {
 
   try {
     const result = await axios.get('https://api.rippr.io/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b')
-    // console.log(res.data);
-    res.send(JSON.stringify(result));
+    console.log(result);
+    res.send(result.data);
   } catch (error) {
     console.log(error);
     res.send([]);
@@ -57,8 +57,8 @@ app.get('/values/api', async (req, res) => {
 
   try {
     const result = await axios.get(`http://${keys.aMemberHost}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b`)
-    // console.log(res.data);
-    res.send(JSON.stringify(result));
+    console.log(result);
+    res.send(result.data);
   } catch (error) {
     console.log(error);
     res.send([]);
