@@ -38,6 +38,32 @@ app.get('/', (req, res) => {
   res.send('Hi');
 });
 
+app.get('/values/check', async (req, res) => {
+  console.log("GET /values/check");
+
+  try {
+    const res = await axios.get('https://api.rippr.io/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b')
+    // console.log(res.data);
+    res.send(res.data);
+  } catch (error) {
+    console.log(error);
+    res.send([]);
+  }
+});
+
+app.get('/values/api', async (req, res) => {
+  console.log("GET /values/check");
+
+  try {
+    const res = await axios.get(`https://${keys.aMemberHost}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b`)
+    // console.log(res.data);
+    res.send(res.data);
+  } catch (error) {
+    console.log(error);
+    res.send([]);
+  }
+});
+
 app.get('/values/all', async (req, res) => {
   console.log("GET /values/all");
   const values = await pgClient.query('SELECT * from profile');

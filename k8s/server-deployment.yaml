@@ -18,6 +18,8 @@ spec:
           ports:
             - containerPort: 5000
           env:
+            - name: AMEMBER_HOST
+              value: amember-cluster-ip-service
             - name: POSTGRES_DB_HOST
               value: '127.0.0.1'
             - name: POSTGRES_DB_PORT

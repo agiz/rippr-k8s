@@ -3,5 +3,6 @@ module.exports = {
     pgPort: process.env.POSTGRES_DB_PORT,
     pgHost: process.env.POSTGRES_DB_HOST,
     pgDatabase: process.env.POSTGRES_DB_NAME,
-    pgPassword: process.env.POSTGRES_DB_PASSWORD
+    pgPassword: process.env.POSTGRES_DB_PASSWORD,
+    aMemberHost: process.env.AMEMBER_HOST,
 }

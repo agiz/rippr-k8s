@@ -4,7 +4,8 @@
         "pg": "7.4.3",
         "cors": "2.8.4",
         "nodemon": "1.18.3",
-        "body-parser": "*"
+        "body-parser": "*",
+        "axios": "^0.18.0"
     },
     "scripts": {
         "dev": "nodemon",
