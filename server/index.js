@@ -3,6 +3,7 @@
 // Express App Setup
 
 const axios = require('axios');
+const dns = require('dns');
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
@@ -63,6 +64,22 @@ app.get('/values/api', async (req, res) => {
     console.log(error);
     res.send([]);
   }
+});
+
+app.get('/values/ip', async (req, res) => {
+  console.log("GET /values/ip", keys.aMemberHost);
+  dns.lookup(keys.aMemberHost, (err2, result2) => {
+    console.log('res2:', result2);
+
+    try {
+      const result = await axios.get(`http://${result2}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b`)
+      console.log(result);
+      res.send(result.data);
+    } catch (error) {
+      console.log(error);
+      res.send([]);
+    }
+  });
 });
 
 app.get('/values/all', async (req, res) => {
