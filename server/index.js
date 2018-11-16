@@ -66,9 +66,9 @@ app.get('/values/api', async (req, res) => {
   }
 });
 
-app.get('/values/ip', async (req, res) => {
+app.get('/values/ip', (req, res) => {
   console.log("GET /values/ip", keys.aMemberHost);
-  dns.lookup(keys.aMemberHost, (err2, result2) => {
+  dns.lookup(keys.aMemberHost, async (err2, result2) => {
     console.log('res2:', result2);
 
     try {
