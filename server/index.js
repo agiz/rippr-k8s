@@ -3,6 +3,7 @@
 // Express App Setup
 
 const axios = require('axios');
+const cookieParser = require('cookie-parser');
 const dns = require('dns');
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -14,6 +15,7 @@ const keys = require('./keys');
 const app = express();
 app.use(cors());
 app.use(bodyParser.json());
+app.use(cookieParser());
 
 
 // Postgres Client Setup
@@ -45,7 +47,7 @@ app.get('/values/check', async (req, res) => {
 
   try {
     const result = await axios.get('https://api.rippr.io/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b')
-    console.log(result);
+    // console.log(result);
     res.send(result.data);
   } catch (error) {
     console.log(error);
@@ -58,7 +60,7 @@ app.get('/values/api', async (req, res) => {
 
   try {
     const result = await axios.get(`http://${keys.aMemberHost}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b`)
-    console.log(result);
+    // console.log(result);
     res.send(result.data);
   } catch (error) {
     console.log(error);
@@ -70,14 +72,20 @@ app.get('/values/ip', (req, res) => {
   console.log("GET /values/ip", keys.aMemberHost);
   dns.lookup(keys.aMemberHost, async (err2, result2) => {
     console.log('res2:', result2);
+    console.log('cookie:', req.cookies);
+    console.log('Signed Cookies: ', req.signedCookies);
+    const phpsessid = '1';
 
     try {
-      const result = await axios.get(`http://${result2}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=d5b7e8010264478a0017e1a22309cf5b`)
-      console.log(result);
+      const result = await axios.get(`http://${result2}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=${phpsessid}`)
       res.send(result.data);
     } catch (error) {
-      console.log(error);
-      res.send([]);
+      console.error(error);
+      res.send({
+        ok: false,
+        code: -2,
+        msg: error,
+      });
     }
   });
 });

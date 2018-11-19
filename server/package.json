@@ -5,6 +5,7 @@
         "cors": "2.8.4",
         "nodemon": "1.18.3",
         "body-parser": "*",
+        "cookie-parser": "^1.4.3",
         "axios": "^0.18.0"
     },
     "scripts": {
