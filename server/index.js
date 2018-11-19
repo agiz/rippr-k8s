@@ -71,10 +71,11 @@ app.get('/values/api', async (req, res) => {
 app.get('/values/ip', (req, res) => {
   console.log("GET /values/ip", keys.aMemberHost);
   dns.lookup(keys.aMemberHost, async (err2, result2) => {
-    console.log('res2:', result2);
-    console.log('cookie:', req.cookies);
-    console.log('Signed Cookies: ', req.signedCookies);
-    const phpsessid = '1';
+    // console.log('res2:', result2);
+    // console.log('cookie:', req.cookies);
+    // console.log('Signed Cookies: ', req.signedCookies);
+    const phpsessid = 'PHPSESSID' in req.cookies ? req.cookies.PHPSESSID : '1';
+    console.log('phpsessid:', phpsessid);
 
     try {
       const result = await axios.get(`http://${result2}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=${phpsessid}`)
