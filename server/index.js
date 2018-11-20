@@ -66,7 +66,7 @@ app.get('/values/api', async (req, res) => {
   }
 })
 
-app.get('/values/ip', (req, res) => {
+app.get('/values/ip', async (req, res) => {
   console.log("GET /values/ip", keys.aMemberHost)
 
   try {
@@ -132,7 +132,7 @@ app.post('/values', async (req, res) => {
 
 const apiRoutes = new Router()
 
-apiRoutes.get('/user', (req, res) => {
+apiRoutes.get('/user', async (req, res) => {
   console.log("(route) GET /user", keys.aMemberHost)
 
   try {
