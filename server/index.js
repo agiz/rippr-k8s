@@ -69,6 +69,8 @@ app.get('/values/api', async (req, res) => {
 app.get('/values/ip', async (req, res) => {
   console.log("GET /values/ip", keys.aMemberHost)
 
+  const phpsessid = 'PHPSESSID' in req.cookies ? req.cookies.PHPSESSID : '1'
+
   try {
     const result = await axios.get(`http://${amemberIp}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=${phpsessid}`)
     res.json(result.data)
@@ -133,7 +135,9 @@ app.post('/values', async (req, res) => {
 const apiRoutes = new Router()
 
 apiRoutes.get('/user', async (req, res) => {
-  console.log("(route) GET /user", keys.aMemberHost)
+  console.log("(route) GET /user", amemberIp)
+
+  const phpsessid = 'PHPSESSID' in req.cookies ? req.cookies.PHPSESSID : '1'
 
   try {
     const result = await axios.get(`http://${amemberIp}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=${phpsessid}`)
