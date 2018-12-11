@@ -248,7 +248,7 @@ apiRoutes.post('/search', async (req, res) => {
 
   const out = []
 
-  values_pin_crawl.forEach((row) => {
+  values_pin_crawl.rows.forEach((row) => {
     const pin = cache.pin.has(row.id) ? cache.pin.get(row.id) : {}
     out.push({ ...row, pin, profile: cache.profile[row.profile_id] })
   })
