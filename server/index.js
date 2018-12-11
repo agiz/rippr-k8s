@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const dns = require('dns')
 const express = require('express')
+const LRU = require('lru-cache')
 const morgan = require('morgan')
 const Router = require('express-promise-router')
 const { Pool } = require('pg')
@@ -40,6 +41,13 @@ const pgClient = new Pool({
 pgClient.on('error', () => console.log('Lost PG connection'))
 
 let amemberIp
+// store amember local IP address
+
+const cache = {}
+cache.pin_crawl = new LRU({ max: 10000 })
+cache.pin = new LRU({ max: 10000 })
+cache.promoter = new LRU({ max: 10000 })
+cache.profile = {}
 
 // pgClient
 //     .query('CREATE TABLE IF NOT EXISTS values (number INT)')
@@ -192,6 +200,63 @@ apiRoutes.get('/keywords', async (req, res) => {
 apiRoutes.post('/search', async (req, res) => {
   console.log("(route) GET /search")
 
+  // TODO: check for injections
+
+  const term = 'term' in req.body ? req.body.term : ''
+  // TODO: check for injections
+
+  const sql_pin_crawl = `SELECT t1.id, t1.pin_id, t1.profile_id, t1.saves, t1.repin_count, t1.created_at, t1.last_repin_date, t1.keyword, t1.position, t1.crawled_at
+    FROM pin_crawl t1
+    JOIN (
+        SELECT pin_id, max(id) AS max_id
+        FROM pin_crawl
+        WHERE
+        ${cutoff_id}
+        keyword ILIKE '%${term}%'
+        GROUP BY pin_id
+    ) t2
+    ON t1.id = t2.max_id
+    ORDER BY t1.id DESC
+    FETCH FIRST 100 ROWS ONLY;
+  `
+
+  const values_pin_crawl = await pgClient.query(sql_pin_crawl)
+  const pin_ids = values_pin_crawl.rows.map(row => row.pin_id) // we only get unique ids here
+  const pin_ids_str = pin_ids.map(x => `'${x}'`).join(',')
+  // values_pin_crawl.rows.forEach(row => cache.pin_crawl.set(row.id, row))
+
+  const sql_pin = `SELECT id, promoter_id, description, ad_url, image, mobile_link, is_video, title, is_shopify FROM pin WHERE id IN (${pin_ids_str});`
+  const values_pin = await pgClient.query(sql_pin)
+
+  const promoter_ids = new Set(values_pin.rows.map(row => row.promoter_id))
+  const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
+
+  const sql_promoter = `SELECT id, username, location, external_url, description, image FROM promoter WHERE id IN (${promoter_ids_str});`
+  const values_promoter = await pgClient.query(sql_promoter)
+  values_promoter.rows.forEach(row => cache.promoter.set(row.id, row))
+
+  values_pin.rows.forEach((row) => {
+    const promoter = cache.promoter.has(row.promoter_id) ? cache.promoter.get(row.promoter_id) : {}
+
+    if (!cache.pin.has(row.id)) {
+      cache.pin.set(row.id, { ...row, promoter })
+    }
+  })
+
+  const out = []
+
+  values_pin_crawl.forEach((row) => {
+    const pin = cache.pin.has(row.id) ? cache.pin.get(row.id) : {}
+    out.push({ ...row, pin, profile: cache.profile[row.profile_id] })
+  })
+
+  res.json(out)
+})
+
+// get all pins matching the keyword
+apiRoutes.post('/search2', async (req, res) => {
+  console.log("(route) GET /search")
+
   const cutoff_id = 'id' in req.body ? `id < ${req.body.id} AND` : ''
   // TODO: check for injections
 
@@ -262,18 +327,15 @@ apiRoutes.post('/promoterdetails', async (req, res) => {
   res.json(values.rows)
 })
 
-apiRoutes.get('/ads', async (req, res) => {
-  console.log("(route) GET /ads")
-
-  const values = await pgClient.query('SELECT * from profile')
-  res.json(values.rows)
-})
-
 app.use('/v1', apiRoutes)
 
-app.listen(5000, err => {
-  dns.lookup(keys.aMemberHost, (err2, result2) => {
+app.listen(5000, (err) => {
+  dns.lookup(keys.aMemberHost, async (err2, result2) => {
     amemberIp = result2
+    const values_profile = await pgClient.query('SELECT profile.id, profile.gender, profile.country_code, profile.interest, user_agent.user_agent FROM profile LEFT JOIN user_agent ON profile.user_agent_id = user_agent.id;')
+
+    values_profile.rows.forEach(row => cache.profile[row.id] = row)
+
     console.log('Listening on 5000')
   })
 })
