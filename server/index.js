@@ -256,6 +256,33 @@ apiRoutes.post('/search', async (req, res) => {
   res.json(out)
 })
 
+// get pin(s) by id (by an array of ids)
+apiRoutes.post('/pindetails', async (req, res) => {
+  console.log("(route) POST /pindetails")
+
+  const id = 'id' in req.body ? req.body.id : ''
+  // TODO: check for injections
+
+  const keyword = 'keyword' in req.body ? req.body.keyword : ''
+  // TODO: check for injections
+
+  if (term === '' || keyword === '') {
+    return res.json([])
+  }
+
+  const sql = `SELECT DATE(crawled_at) crawled_date, COUNT(DISTINCT profile_id) unique_profiles, COUNT(profile_id) cumulative_profiles,
+    ROUND(AVG(position)::numeric, 2) "position",
+    MAX(saves) saves, MAX(repin_count) repin_count
+    FROM pin_crawl
+    WHERE keyword = '${keyword}' AND
+    pin_id = '${id}'
+    GROUP BY 1
+    ORDER BY crawled_date;`
+
+  const values = await pgClient.query(sql)
+  res.json(values.rows)
+})
+
 // get all pins matching the keyword
 apiRoutes.post('/search2', async (req, res) => {
   console.log("(route) GET /search")
