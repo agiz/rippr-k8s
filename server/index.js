@@ -164,6 +164,9 @@ apiRoutes.get('/user', async (req, res) => {
 apiRoutes.use(async (req, res, next) => {
   console.log('middleware')
 
+  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+
   const phpsessid = 'PHPSESSID' in req.cookies ? req.cookies.PHPSESSID : '1'
   // console.log('phpsessid:', phpsessid)
 
@@ -266,7 +269,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const keyword = 'keyword' in req.body ? req.body.keyword : ''
   // TODO: check for injections
 
-  if (term === '' || keyword === '') {
+  if (id === '' || keyword === '') {
     return res.json([])
   }
 
