@@ -164,9 +164,10 @@ apiRoutes.get('/user', async (req, res) => {
 apiRoutes.use(async (req, res, next) => {
   console.log('middleware')
 
-  res.header("Access-Control-Allow-Origin", "*")
+  res.header("Access-Control-Allow-Origin", "http://localhost:8089")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
-  res.setHeader('Access-Control-Allow-Credentials', true)
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Credentials', true)
 
   const phpsessid = 'PHPSESSID' in req.cookies ? req.cookies.PHPSESSID : '1'
   // console.log('phpsessid:', phpsessid)
