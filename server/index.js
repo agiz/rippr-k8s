@@ -144,6 +144,10 @@ const apiRoutes = new Router()
 
 apiRoutes.get('/user', async (req, res) => {
   console.log("(route) GET /user", amemberIp)
+  res.header("Access-Control-Allow-Origin", "http://rippr.io:8089")
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+  res.header('Access-Control-Allow-Credentials', true)
 
   const phpsessid = 'PHPSESSID' in req.cookies ? req.cookies.PHPSESSID : '1'
 
@@ -164,7 +168,7 @@ apiRoutes.get('/user', async (req, res) => {
 apiRoutes.use(async (req, res, next) => {
   console.log('middleware')
 
-  res.header("Access-Control-Allow-Origin", "http://localhost:8089")
+  res.header("Access-Control-Allow-Origin", "http://rippr.io:8089")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Credentials', true)
