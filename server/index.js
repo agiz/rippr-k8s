@@ -229,7 +229,7 @@ apiRoutes.post('/search', async (req, res) => {
     ) t2
     ON t1.id = t2.max_id
     ORDER BY t1.id DESC
-    FETCH FIRST 100 ROWS ONLY;
+    FETCH FIRST 25 ROWS ONLY;
   `
 
   const values_pin_crawl = await pgClient.query(sql_pin_crawl)
@@ -287,6 +287,27 @@ apiRoutes.post('/pindetails', async (req, res) => {
     pin_id = '${id}'
     GROUP BY 1
     ORDER BY crawled_date;`
+
+  const values = await pgClient.query(sql)
+  res.json(values.rows)
+})
+
+// get related pin from promoter id
+apiRoutes.post('/relatedpins', async (req, res) => {
+  console.log("(route) POST /relatedpins")
+
+  const id = 'id' in req.body ? req.body.id : ''
+  // TODO: check for injections
+
+  if (id === '') {
+    return res.json([])
+  }
+
+  const sql = `
+    SELECT id, promoter_id, description, ad_url, image, mobile_link, is_video, title, is_shopify
+    FROM pin
+    WHERE promoter_id = '${id}'
+  `
 
   const values = await pgClient.query(sql)
   res.json(values.rows)
