@@ -345,7 +345,6 @@ apiRoutes.post('/searchTest', async (req, res) => {
     FETCH first 25 ROWS ONLY;
   `
 
-  console.log('search SQL:', sql_pin_crawl)
   const values_pin_crawl = await pgClient.query(sql_pin_crawl)
   const promoter_ids = new Set(values_pin_crawl.rows.map(row => row.promoter_id))
   const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
@@ -355,10 +354,12 @@ apiRoutes.post('/searchTest', async (req, res) => {
   values_promoter.rows.forEach(row => cache.promoter.set(row.id, row))
 
   values_pin_crawl.rows.forEach((row) => {
+    console.log('row:', row)
     const promoter = cache.promoter.has(row.promoter_id) ? cache.promoter.get(row.promoter_id) : {}
+    console.log('promoter:', promoter)
 
-    if (!cache.pin.has(row.id)) {
-      cache.pin.set(row.id, { ...row, promoter })
+    if (!cache.pin.has(row.pin_id)) {
+      cache.pin.set(row.pin_id, { ...row, promoter })
     }
   })
 
