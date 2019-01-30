@@ -213,7 +213,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   // TODO: check for injections
 
-  const cutoff_id = 'id' in req.body ? `id < ${req.body.id} AND` : ''
+  const cutoffId = 'id' in req.body ? `id < ${req.body.id}` : 'true'
   // TODO: check for injections
 
   const term = 'term' in req.body ? req.body.term : ''
@@ -222,6 +222,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const dateFrom = 'dateFrom' in req.body ? req.body.dateFrom : '1970-01-01'
   const dateTo = 'dateTo' in req.body ? req.body.dateTo : '2030-12-31'
   const countryCode = 'countryCode' in req.body ? `profile.country_code = ${req.body.countryCode}` : 'true'
+  const daysActive = 'daysActive' in req.body ? `da.days_active >= ${req.body.daysActive}` : 'true'
+  const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${req.body.isShopify}` : true
 
   const sql_pin_crawl = `
     WITH p1 AS
@@ -331,16 +333,19 @@ apiRoutes.post('/searchTest', async (req, res) => {
     WHERE
       p1.id = pc1.pin_id
       AND p1.id = da.pin_id
-      ${cutoff_id}
+      AND ${cutoffId}
+      AND ${daysActive}
+      AND ${isShopify}
       -- AND pc1.pin_crawl_id < 68994
       -- AND false
       -- AND p1.is_shopify = true
-      -- AND 'dress' = ANY(pc1.keywords)
+      AND ('${term}' = ANY(pc1.keywords) OR p1.title ILIKE '%${term}%' OR p1.description ILIKE '%${term}%')
     ORDER BY
       pc1.pin_crawl_id DESC
     FETCH first 25 ROWS ONLY;
   `
 
+  console.log('search SQL:', sql_pin_crawl)
   const values_pin_crawl = await pgClient.query(sql_pin_crawl)
   const promoter_ids = new Set(values_pin_crawl.rows.map(row => row.promoter_id))
   const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
@@ -454,7 +459,28 @@ apiRoutes.post('/pindetails', async (req, res) => {
     ORDER BY crawled_date;`
 
   const values = await pgClient.query(sql)
-  res.json(values.rows)
+
+  const sql_pin = `SELECT * FROM pin WHERE id = '${id}'`
+  const pin_values = await pgClient.query(sql_pin)
+
+  const promoter_id = pin_values.rows[0].promoter_id
+  console.log('promoter_id:', promoter_id)
+
+  const sql_promoter = `
+    SELECT promoter.id, promoter.username, promoter.location, promoter.external_url, promoter.description, promoter.image,
+    promoter.is_big_advertiser, t2.followers, t2.monthly_views
+    FROM promoter
+    JOIN (
+      SELECT MAX(promoter_id) promoter_id, MAX(followers) followers, MAX(monthly_views) monthly_views
+      FROM promoter_crawl
+      WHERE promoter_id = '${promoter_id}'
+    ) t2
+    ON promoter.id = t2.promoter_id
+  `
+
+  const promoter_values = await pgClient.query(sql_promoter)
+
+  res.json({ pin: pin_values.rows, pinCrawl: values.rows, promoter: promoter_values.rows })
 })
 
 // get related pin from promoter id
