@@ -146,6 +146,7 @@ apiRoutes.get('/user', async (req, res) => {
   console.log("(route) GET /user", amemberIp)
   res.header("Access-Control-Allow-Origin", "http://adnalytics.io:8089")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  res.header('Access-Control-Allow-Headers', 'Content-Type')
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Credentials', true)
 
@@ -170,6 +171,7 @@ apiRoutes.use(async (req, res, next) => {
 
   res.header("Access-Control-Allow-Origin", "http://adnalytics.io:8089")
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
+  res.header('Access-Control-Allow-Headers', 'Content-Type')
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.header('Access-Control-Allow-Credentials', true)
 
@@ -203,6 +205,166 @@ apiRoutes.get('/keywords', async (req, res) => {
 
   const values = await pgClient.query('SELECT DISTINCT keyword FROM pin_crawl;')
   res.json(values.rows)
+})
+
+// get all pins matching the keyword
+apiRoutes.post('/searchTest', async (req, res) => {
+  console.log("(route) POST /search")
+
+  // TODO: check for injections
+
+  const cutoff_id = 'id' in req.body ? `id < ${req.body.id} AND` : ''
+  // TODO: check for injections
+
+  const term = 'term' in req.body ? req.body.term : ''
+  // TODO: check for injections
+
+  const dateFrom = 'dateFrom' in req.body ? req.body.dateFrom : '1970-01-01'
+  const dateTo = 'dateTo' in req.body ? req.body.dateTo : '2030-12-31'
+  const countryCode = 'countryCode' in req.body ? `profile.country_code = ${req.body.countryCode}` : 'true'
+
+  const sql_pin_crawl = `
+    WITH p1 AS
+    (
+      SELECT
+        *
+      FROM
+        pin
+    )
+    ,
+    pc1 AS
+    (
+      SELECT
+        pin_id,
+      ARRAY_AGG(DISTINCT pin_crawl.keyword) keywords,
+        MAX(pin_crawl.id) pin_crawl_id,
+        COUNT(DISTINCT profile_id) unique_profiles,
+        MAX(saves) saves,
+        MAX(repin_count) repin_count,
+        MIN(created_at) created_at,
+        MAX(last_repin_date) last_repin_date,
+        MIN(crawled_at) min_crawled_at,
+        MAX(crawled_at) max_crawled_at,
+        round(AVG(POSITION)::NUMERIC, 2) "position"
+      FROM
+        pin_crawl
+        JOIN
+          (
+            SELECT
+              id,
+              country_code,
+              user_agent_id
+            FROM
+              profile
+          )
+          profile
+          ON pin_crawl.profile_id = profile.id
+      WHERE
+        ${countryCode}
+        AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
+      GROUP BY
+        1
+    )
+    ,
+    da AS
+    (
+      SELECT
+        x.pin_id,
+        COUNT(x.pin_id) days_active
+      FROM
+        (
+          SELECT
+            DATE(crawled_at) crawled_at,
+            pin_id
+          FROM
+            pin_crawl
+            JOIN
+              (
+                SELECT
+                  id,
+                  country_code,
+                  user_agent_id
+                FROM
+                  profile
+              )
+              profile
+              ON pin_crawl.profile_id = profile.id
+          WHERE
+            ${countryCode}
+            AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
+          GROUP BY
+            1,
+            2
+          ORDER BY
+            1 DESC,
+            2
+        )
+        x
+      GROUP BY
+        1
+    )
+    SELECT
+      pc1.pin_crawl_id id,
+      pc1.keywords,
+      pc1.unique_profiles,
+      pc1.saves,
+      pc1.repin_count,
+      pc1.created_at,
+      pc1.last_repin_date,
+      pc1.min_crawled_at,
+      pc1.max_crawled_at,
+      pc1.POSITION,
+      p1.id pin_id,
+      p1.promoter_id,
+      p1.description,
+      p1.title,
+      p1.ad_url,
+      p1.image,
+      p1.mobile_link,
+      p1.is_video,
+      p1.is_shopify,
+      da.days_active
+    FROM
+      p1,
+      pc1,
+      da
+    WHERE
+      p1.id = pc1.pin_id
+      AND p1.id = da.pin_id
+      ${cutoff_id}
+      -- AND pc1.pin_crawl_id < 68994
+      -- AND false
+      -- AND p1.is_shopify = true
+      -- AND 'dress' = ANY(pc1.keywords)
+    ORDER BY
+      pc1.pin_crawl_id DESC
+    FETCH first 25 ROWS ONLY;
+  `
+
+  const values_pin_crawl = await pgClient.query(sql_pin_crawl)
+  const promoter_ids = new Set(values_pin_crawl.rows.map(row => row.promoter_id))
+  const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
+
+  const sql_promoter = `SELECT id, username, location, external_url, description, image FROM promoter WHERE id IN (${promoter_ids_str});`
+  const values_promoter = await pgClient.query(sql_promoter)
+  values_promoter.rows.forEach(row => cache.promoter.set(row.id, row))
+
+  values_pin_crawl.rows.forEach((row) => {
+    const promoter = cache.promoter.has(row.promoter_id) ? cache.promoter.get(row.promoter_id) : {}
+
+    if (!cache.pin.has(row.id)) {
+      cache.pin.set(row.id, { ...row, promoter })
+    }
+  })
+
+  const out = []
+
+  values_pin_crawl.rows.forEach((row) => {
+    const pin = cache.pin.has(row.pin_id) ? cache.pin.get(row.pin_id) : {}
+    out.push({ ...pin })
+  })
+
+  res.json(out)
 })
 
 // get all pins matching the keyword
@@ -274,6 +436,9 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
   const keyword = 'keyword' in req.body ? req.body.keyword : ''
   // TODO: check for injections
+
+  console.log('id:', id)
+  console.log('keyword:', keyword)
 
   if (id === '' || keyword === '') {
     return res.json([])
