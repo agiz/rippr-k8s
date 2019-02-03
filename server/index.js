@@ -529,7 +529,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
   console.log('days seen', days_seen.rows)
   const daysSeen = days_seen.rows.length === 1 ? days_seen.rows[0].days_seen : 0
 
-  const pin = pin_values.rows.length === 1 ? pin_values.rows.rows[0] : {}
+  const pin = pin_values.rows.length === 1 ? pin_values.rows[0] : {}
   const promoter = promoter_values.rows.length === 1 ? promoter_values.rows[0] : {}
 
   res.json({
