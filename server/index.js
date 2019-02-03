@@ -224,7 +224,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const dateFrom = 'dateFrom' in req.body ? req.body.dateFrom : '1970-01-01'
   const dateTo = 'dateTo' in req.body ? req.body.dateTo : '2030-12-31'
   const countryCode = 'countryCode' in req.body ? `profile.country_code = '${req.body.countryCode}'` : 'true'
-  // const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN '${req.body.countryCode}'` : 'true'
+  const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN '(${req.body.countryCode.join(',')}')` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${req.body.daysActive}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${req.body.isShopify}` : true
 
@@ -235,6 +235,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   console.log('countryCode:', countryCode)
   console.log('daysActive:', daysActive)
   console.log('isShopify:', isShopify)
+  console.log('selectedCountries:', selectedCountries)
 
   const sql_pin_crawl = `
     WITH p1 AS
@@ -273,7 +274,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
           profile
           ON pin_crawl.profile_id = profile.id
       WHERE
-        ${countryCode}
+        ${selectedCountries}
         AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
       GROUP BY
         1
@@ -303,7 +304,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
               profile
               ON pin_crawl.profile_id = profile.id
           WHERE
-            ${countryCode}
+            ${selectedCountries}
             AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
           GROUP BY
             1,
