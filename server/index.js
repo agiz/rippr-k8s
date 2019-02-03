@@ -508,7 +508,35 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
   const promoter_values = await pgClient.query(sql_promoter)
 
-  res.json({ pin: pin_values.rows, pinCrawl: values.rows, promoter: promoter_values.rows })
+  const sql_promoter_related = `
+    select count(*) promoted_pins_count from pin where promoter_id = '${promoter_id}'
+  `
+  const promoted_pins = await pgClient.query(sql_promoter_related)
+  console.log('promoted_pins:', promoted_pins.rows)
+  const promotedPins = promoted_pins.rows.length === 1 : promoted_pins.rows[0].promoted_pins_count : 0
+
+  const sql_pin_position = `
+    SELECT ROUND(AVG(position)::numeric, 2) "position" FROM pin_crawl WHERE pin_id = '${id}'
+  `
+  const pin_position = await pgClient.query(sql_pin_position)
+  console.log('pin position:', pin_position.rows)
+  const pinPosition = pin_position.rows.length === 1 : pin_position.rows[0].position : 0.0
+
+  const sql_days_seen = `
+    SELECT COUNT(DISTINCT DATE(crawled_at)) days_seen FROM pin_crawl WHERE pin_id = '${id}'
+  `
+  const days_seen = await pgClient.query(sql_days_seen)
+  console.log('days seen', days_seen.rows)
+  const daysSeen = days_seen.rows.length === 1 : days_seen.rows[0].days_seen : 0
+
+  res.json({
+    pin: pin_values.rows,
+    pinCrawl: values.rows,
+    promoter: promoter_values.rows,
+    promotedPins,
+    pinPosition,
+    daysSeen,
+  })
 })
 
 // get related pin from promoter id
