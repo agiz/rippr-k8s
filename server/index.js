@@ -530,12 +530,9 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const daysSeen = days_seen.rows.length === 1 ? days_seen.rows[0].days_seen : 0
 
   res.json({
-    pin: pin_values.rows,
+    pin: { ...pin_values.rows, promotedPins, pinPosition, daysSeen },
     pinCrawl: values.rows,
     promoter: promoter_values.rows,
-    promotedPins,
-    pinPosition,
-    daysSeen,
   })
 })
 
