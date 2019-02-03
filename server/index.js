@@ -361,6 +361,10 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   console.log('values_pin_crawl rows length:', values_pin_crawl.rows.length)
 
+  if (values_pin_crawl.rows.length === 0) {
+    return []
+  }
+
   const promoter_ids = new Set(values_pin_crawl.rows.map(row => row.promoter_id))
   const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
 
