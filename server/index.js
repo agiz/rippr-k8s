@@ -209,7 +209,9 @@ apiRoutes.get('/keywords', async (req, res) => {
 
 // get all pins matching the keyword
 apiRoutes.post('/searchTest', async (req, res) => {
-  console.log("(route) POST /search")
+  console.log("(route) POST /searchTest")
+
+  console.dir(req.body)
 
   // TODO: check for injections
 
@@ -356,6 +358,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
   console.log(sql_pin_crawl)
 
   const values_pin_crawl = await pgClient.query(sql_pin_crawl)
+
+  console.log('values_pin_crawl rows length:', values_pin_crawl.rows.length)
+
   const promoter_ids = new Set(values_pin_crawl.rows.map(row => row.promoter_id))
   const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
 
@@ -364,9 +369,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
   values_promoter.rows.forEach(row => cache.promoter.set(row.id, row))
 
   values_pin_crawl.rows.forEach((row) => {
-    console.log('row:', row)
+    // console.log('row:', row)
     const promoter = cache.promoter.has(row.promoter_id) ? cache.promoter.get(row.promoter_id) : {}
-    console.log('promoter:', promoter)
+    // console.log('promoter:', promoter)
 
     if (!cache.pin.has(row.pin_id)) {
       cache.pin.set(row.pin_id, { ...row, promoter })
@@ -374,8 +379,6 @@ apiRoutes.post('/searchTest', async (req, res) => {
   })
 
   const out = []
-
-  console.log('values_pin_crawl rows length:', values_pin_crawl.rows.length)
 
   values_pin_crawl.rows.forEach((row) => {
     const pin = cache.pin.has(row.pin_id) ? cache.pin.get(row.pin_id) : {}
