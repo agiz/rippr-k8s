@@ -211,11 +211,32 @@ apiRoutes.get('/keywords', async (req, res) => {
 apiRoutes.post('/searchTest', async (req, res) => {
   console.log("(route) POST /searchTest")
 
-  console.dir(req.body)
+  // console.dir(req.body)
 
   // TODO: check for injections
 
+  const sortMap = {
+    id: 'pc1.pin_crawl_id DESC',
+    saves: 'pc1.saves DESC, pc1.pin_crawl_id DESC',
+    daysActive: 'da.days_active DESC, pc1.pin_crawl_id DESC',
+    lastRepin: 'pc1.last_repin_date DESC, pc1.pin_crawl_id DESC',
+  }
+
+  const sortBy = 'sortBy' in req.body && req.body.sortBy in sortMap ? req.body.sortBy : 'id'
+  // TODO: check for injections
+
   const cutoffId = 'id' in req.body ? `pc1.pin_crawl_id < ${req.body.id}` : 'true'
+  // TODO: check for injections
+
+  const cutoffMap = {
+    id: 'pc1.pin_crawl_id',
+    saves: 'pc1.saves',
+    daysActive: 'da.days_active',
+    lastRepin: 'pc1.last_repin_date',
+  }
+
+  const cutoffValue = cutoffId === 'true' && 'cutoffValue' in req.body ?
+  `${cutoffMap[sortBy]} <= '${req.body.cutoffValue}'` : 'true'
   // TODO: check for injections
 
   const term = 'term' in req.body ? req.body.term : ''
@@ -352,6 +373,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       p1.id = pc1.pin_id
       AND p1.id = da.pin_id
       AND ${cutoffId}
+      AND ${cutoffValue}
       AND ${daysActive}
       AND ${isShopify}
       -- AND pc1.pin_crawl_id < 68994
@@ -359,7 +381,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
       -- AND p1.is_shopify = true
       AND ('${term}' = ANY(pc1.keywords) OR p1.title ILIKE '%${term}%' OR p1.description ILIKE '%${term}%')
     ORDER BY
-      pc1.pin_crawl_id DESC
+      ${sortMap[sortBy]}
+      -- pc1.pin_crawl_id DESC
     FETCH first 12 ROWS ONLY;
   `
 
