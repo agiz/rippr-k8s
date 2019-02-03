@@ -225,6 +225,14 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${req.body.daysActive}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${req.body.isShopify}` : true
 
+  console.log('cutoffId:', cutoffId)
+  console.log('term:', term)
+  console.log('dateFrom:', dateFrom)
+  console.log('dateTo:', dateTo)
+  console.log('countryCode:', countryCode)
+  console.log('daysActive:', daysActive)
+  console.log('isShopify:', isShopify)
+
   const sql_pin_crawl = `
     WITH p1 AS
     (
@@ -342,8 +350,10 @@ apiRoutes.post('/searchTest', async (req, res) => {
       AND ('${term}' = ANY(pc1.keywords) OR p1.title ILIKE '%${term}%' OR p1.description ILIKE '%${term}%')
     ORDER BY
       pc1.pin_crawl_id DESC
-    FETCH first 25 ROWS ONLY;
+    FETCH first 12 ROWS ONLY;
   `
+
+  console.log(sql_pin_crawl)
 
   const values_pin_crawl = await pgClient.query(sql_pin_crawl)
   const promoter_ids = new Set(values_pin_crawl.rows.map(row => row.promoter_id))
@@ -364,6 +374,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
   })
 
   const out = []
+
+  console.log('values_pin_crawl rows length:', values_pin_crawl.rows.length)
 
   values_pin_crawl.rows.forEach((row) => {
     const pin = cache.pin.has(row.pin_id) ? cache.pin.get(row.pin_id) : {}
