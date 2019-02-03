@@ -557,7 +557,31 @@ apiRoutes.post('/relatedpins', async (req, res) => {
   `
 
   const values = await pgClient.query(sql)
-  res.json(values.rows)
+
+  const pin_ids = new Set(values.rows.map(row => row.id))
+  const pin_ids_str = [...pin_ids].map(x => `'${x}'`).join(',')
+
+  const sql_pin_crawl = `
+    SELECT pin_id, MAX(saves) saves, MAX(repin_count) repin_count, ARRAY_AGG(DISTINCT keyword) keywords, MAX(crawled_at) crawled_at
+    FROM pin_crawl
+    WHERE pin_id IN (${pin_ids_str})
+    GROUP BY 1
+  `
+  const values_pin_crawl = await pgClient.query(sql_pin_crawl)
+
+  const pin_crawl_dict = {}
+
+  values_pin_crawl.rows.forEach((row) => {
+    pin_crawl_dict[row.pin_id] = row
+  })
+
+  const out = []
+
+  values.rows.forEach((row) => {
+    out.push({ ...row, ...pin_crawl_dict[row.id] })
+  })
+
+  res.json(out)
 })
 
 // get all pins matching the keyword
