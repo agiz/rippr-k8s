@@ -235,7 +235,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
     lastRepin: 'pc1.last_repin_date',
   }
 
-  const cutoffValue = cutoffId === 'true' && 'cutoffValue' in req.body ?
+  const cutoffValue = cutoffId !== 'true' && 'cutoffValue' in req.body ?
   `${cutoffMap[sortBy]} <= '${req.body.cutoffValue}'` : 'true'
   // TODO: check for injections
 
