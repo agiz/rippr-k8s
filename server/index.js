@@ -215,7 +215,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   // TODO: check for injections
 
-  const cutoffId = 'id' in req.body ? `id < ${req.body.id}` : 'true'
+  const cutoffId = 'id' in req.body ? `pc1.pin_crawl_id < ${req.body.id}` : 'true'
   // TODO: check for injections
 
   const term = 'term' in req.body ? req.body.term : ''
