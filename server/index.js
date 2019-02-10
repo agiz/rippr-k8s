@@ -684,6 +684,8 @@ apiRoutes.get('/top', async (req, res) => {
     topPin[row.promoter_id] = row
   })
 
+  console.dir(topPin)
+
   const out = []
 
   values_1.rows.forEach((row) => {
