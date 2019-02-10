@@ -657,6 +657,9 @@ apiRoutes.get('/top', async (req, res) => {
   const promoter_ids = values_1.rows.map(row => row.promoter_id)
   const promoter_ids_str = promoter_ids.map(x => `'${x}'`).join(',')
 
+  console.log('ids:', promoter_ids)
+  console.log('ids_str:', promoter_ids_str)
+
   const sql_2 = `
     SELECT t1.*, t2.saves
     FROM pin t1, (
@@ -666,7 +669,7 @@ apiRoutes.get('/top', async (req, res) => {
       (
         SELECT DISTINCT id
         FROM pin
-        WHERE promoter_id IN '${promoter_ids_str}'
+        WHERE promoter_id IN (${promoter_ids_str})
         AND is_shopify = true
       )
       ORDER BY 2 DESC
