@@ -612,7 +612,7 @@ apiRoutes.post('/relatedpins', async (req, res) => {
   res.json(out)
 })
 
-// get promoter(s) by id (by an array of ids)
+// get pin frequency over time
 apiRoutes.post('/trend', async (req, res) => {
   console.log("(route) POST /trend")
 
@@ -633,6 +633,61 @@ apiRoutes.post('/trend', async (req, res) => {
 
   const values = await pgClient.query(sql)
   res.json(values.rows)
+})
+
+apiRoutes.get('/top', async (req, res) => {
+  console.log("(route) GET /top")
+
+  const sql_1 = `
+    SELECT t1.promoter_id, t1.number_of_pins, t2.username, t2.external_url, t2.image, t2.is_big_advertiser
+    FROM (
+      SELECT promoter_id, COUNT(*) number_of_pins
+      FROM pin
+      WHERE is_shopify = true
+      GROUP BY 1
+      ORDER BY 2 DESC
+      LIMIT 25
+    ) t1
+    JOIN promoter t2
+    ON t1.promoter_id = t2.id
+    ORDER BY 2 DESC
+  `
+
+  const values_1 = await pgClient.query(sql_1)
+  const promoter_ids = values_1.rows.map(row => row.promoter_id)
+  const promoter_ids_str = promoter_ids.map(x => `'${x}'`).join(',')
+
+  const sql_2 = `
+    SELECT t1.*, t2.saves
+    FROM pin t1, (
+      SELECT DISTINCT pin_id, saves
+      FROM pin_crawl
+      WHERE pin_id IN
+      (
+        SELECT DISTINCT id
+        FROM pin
+        WHERE promoter_id IN '${promoter_ids_str}'
+        AND is_shopify = true
+      )
+      ORDER BY 2 DESC
+      LIMIT 1
+    ) t2
+    WHERE t1.id = t2.pin_id
+  `
+
+  const values_2 = await pgClient.query(sql_2)
+  const topPin = {}
+  values_2.rows.forEach((row) => {
+    topPin[row.promoter_id] = row
+  })
+
+  const out = []
+
+  values_1.rows.forEach((row) => {
+    out.push({ promoter: row, pin: topPin[row.promoter_id] })
+  })
+
+  res.json(out)
 })
 
 // get all pins matching the keyword
