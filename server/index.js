@@ -1,6 +1,7 @@
 /* jshint esversion: 6 */
 
 // Express App Setup
+// TODO: https://www.npmjs.com/package/sqlstring
 
 const axios = require('axios')
 const bodyParser = require('body-parser')
@@ -609,6 +610,29 @@ apiRoutes.post('/relatedpins', async (req, res) => {
   })
 
   res.json(out)
+})
+
+// get promoter(s) by id (by an array of ids)
+apiRoutes.post('/trend', async (req, res) => {
+  console.log("(route) POST /trend")
+
+  const id = 'id' in req.body ? req.body.id : ''
+  // TODO: check for injections
+
+  if (id === '') {
+    return res.json([])
+  }
+
+  const sql = `
+    SELECT DATE(crawled_at) crawled_at, COUNT(*) frequency
+    FROM pin_crawl
+    WHERE pin_id = '${id}'
+    GROUP BY 1
+    ORDER BY 1
+  `
+
+  const values = await pgClient.query(sql)
+  res.json(values.rows)
 })
 
 // get all pins matching the keyword
