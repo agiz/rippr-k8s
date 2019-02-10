@@ -663,22 +663,36 @@ apiRoutes.get('/top', async (req, res) => {
   console.log('ids:', promoter_ids)
   console.log('ids_str:', promoter_ids_str)
 
+  // const sql_2 = `
+  //   SELECT t1.*, t2.saves
+  //   FROM pin t1, (
+  //     SELECT DISTINCT pin_id, saves
+  //     FROM pin_crawl
+  //     WHERE pin_id IN
+  //     (
+  //       SELECT DISTINCT id
+  //       FROM pin
+  //       WHERE promoter_id IN (${promoter_ids_str})
+  //       AND is_shopify = true
+  //     )
+  //     ORDER BY 2 DESC
+  //     LIMIT 1
+  //   ) t2
+  //   WHERE t1.id = t2.pin_id
+  // `
+
   const sql_2 = `
-    SELECT t1.*, t2.saves
-    FROM pin t1, (
-      SELECT DISTINCT pin_id, saves
-      FROM pin_crawl
-      WHERE pin_id IN
+    SELECT * FROM (
+      SELECT DISTINCT pin_crawl.saves, pin.*, row_number() over (partition by pin.promoter_id order by saves desc) row_index
+      FROM pin_crawl, pin
+      WHERE pin_crawl.pin_id = pin.id AND pin_id IN
       (
         SELECT DISTINCT id
         FROM pin
         WHERE promoter_id IN (${promoter_ids_str})
         AND is_shopify = true
       )
-      ORDER BY 2 DESC
-      LIMIT 1
-    ) t2
-    WHERE t1.id = t2.pin_id
+  ) t1 WHERE t1.row_index = '1'
   `
 
   const values_2 = await pgClient.query(sql_2)
