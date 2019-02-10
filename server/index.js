@@ -19,7 +19,8 @@ const keys = require('./keys')
 const app = express()
 
 // app.use(cors({ credentials: true, origin: 'http://adnalytics.io:8089' }))
-app.use(cors({ credentials: true, origin: 'https://adnalytics.io' }))
+// app.use(cors({ credentials: true, origin: 'https://adnalytics.io' }))
+app.use(cors({ credentials: true, origin: true }))
 
 app.use(bodyParser.urlencoded({ extended: false }))
 app.use(bodyParser.json())
@@ -147,7 +148,8 @@ const apiRoutes = new Router()
 apiRoutes.get('/user', async (req, res) => {
   console.log("(route) GET /user", amemberIp)
   // res.header("Access-Control-Allow-Origin", "http://adnalytics.io:8089")
-  res.header("Access-Control-Allow-Origin", "https://adnalytics.io")
+  // res.header("Access-Control-Allow-Origin", "https://adnalytics.io")
+  res.header("Access-Control-Allow-Origin", req.headers.origin)
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
   res.header('Access-Control-Allow-Headers', 'Content-Type')
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
@@ -173,7 +175,8 @@ apiRoutes.use(async (req, res, next) => {
   console.log('middleware')
 
   // res.header("Access-Control-Allow-Origin", "http://adnalytics.io:8089")
-  res.header("Access-Control-Allow-Origin", "https://adnalytics.io")
+  // res.header("Access-Control-Allow-Origin", "https://adnalytics.io")
+  res.header("Access-Control-Allow-Origin", req.headers.origin)
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept")
   res.header('Access-Control-Allow-Headers', 'Content-Type')
   res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
