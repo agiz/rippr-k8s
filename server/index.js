@@ -683,7 +683,7 @@ apiRoutes.get('/top', async (req, res) => {
 
   const sql_2 = `
     SELECT * FROM (
-      SELECT DISTINCT pin_crawl.saves, pin.*, row_number() over (partition by pin.promoter_id order by saves desc) row_index
+      SELECT DISTINCT pin_crawl.saves, pin_crawl.keyword, pin.*, row_number() over (partition by pin.promoter_id order by saves desc) row_index
       FROM pin_crawl, pin
       WHERE pin_crawl.pin_id = pin.id AND pin_id IN
       (
