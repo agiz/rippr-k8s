@@ -390,7 +390,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
     ORDER BY
       ${sortMap[sortBy]}
       -- pc1.pin_crawl_id DESC
-    FETCH first 12 ROWS ONLY;
+    FETCH first 10 ROWS ONLY;
   `
 
   console.log(sql_pin_crawl)
