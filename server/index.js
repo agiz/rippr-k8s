@@ -526,7 +526,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
   const sql_promoter = `
     SELECT promoter.id, promoter.username, promoter.location, promoter.external_url, promoter.description, promoter.image,
-    promoter.is_big_advertiser, t2.followers, t2.monthly_views, t3.total_visits, t3.social_traffic, t3.pinterest_traffic
+    promoter.is_big_advertiser, t2.followers, t2.monthly_views
     FROM promoter
     JOIN (
       SELECT MAX(promoter_id) promoter_id, MAX(followers) followers, MAX(monthly_views) monthly_views
@@ -534,14 +534,6 @@ apiRoutes.post('/pindetails', async (req, res) => {
       WHERE promoter_id = '${promoter_id}'
     ) t2
     ON promoter.id = t2.promoter_id
-  JOIN (
-    SELECT promoter_id, total_visits, social_traffic, pinterest_traffic
-    FROM promoter_social
-    WHERE promoter_id = '${promoter_id}'
-    ORDER BY created_at DESC
-    LIMIT 1
-  ) t3
-  ON promoter.id = t3.promoter_id
   `
 
   const promoter_values = await pgClient.query(sql_promoter)
