@@ -562,10 +562,22 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const pin = pin_values.rows.length === 1 ? pin_values.rows[0] : {}
   const promoter = promoter_values.rows.length === 1 ? promoter_values.rows[0] : {}
 
+  const sql_promoter_social = `
+    SELECT total_visits, social_traffic, pinterest_traffic
+    FROM promoter_social
+    WHERE promoter_id = '${promoter_id}'
+    ORDER BY created_at DESC
+    LIMIT 1
+  `
+
+  const promoter_social_values = await pgClient.query(sql_promoter_social)
+  const promoterSocial = promoter_social_values.rows.length === 1 ? promoter_social_values.rows[0] : {}
+
   res.json({
     pin: { ...pin, promotedPins, pinPosition, daysSeen },
     pinCrawl: values.rows,
     promoter,
+    promoterSocial,
   })
 })
 
