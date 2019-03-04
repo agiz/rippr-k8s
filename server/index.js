@@ -723,27 +723,25 @@ apiRoutes.get('/top', async (req, res) => {
 
   const sql_3 = `
     SELECT pin_crawl.*, pin.* FROM (
-    SELECT pin_crawl.pin_id, MIN(crawled_at) crawled_at
-    FROM pin_crawl, pin
-    WHERE
-    pin.is_shopify = true AND
-    pin_crawl.pin_id = pin.id
-    group by 1
-    order by 2 desc
-    --order by pin_crawl.crawled_at desc
-    limit 10
+      SELECT pin_crawl.pin_id, MIN(crawled_at) crawled_at
+      FROM pin_crawl, pin
+      WHERE
+      pin.is_shopify = true AND
+      pin_crawl.pin_id = pin.id
+      GROUP BY 1
+      ORDER BY 2 DESC
+      LIMIT 10
     ) t1, pin, pin_crawl
-    where t1.pin_id = pin.id
-    and t1.pin_id = pin_crawl.pin_id
-    and t1.crawled_at = pin_crawl.crawled_at
-    order by pin_crawl.crawled_at desc
-    --limit 10
+    WHERE t1.pin_id = pin.id
+    AND t1.pin_id = pin_crawl.pin_id
+    AND t1.crawled_at = pin_crawl.crawled_at
+    ORDER BY pin_crawl.crawled_at DESC
   `
 
   const values_3 = await pgClient.query(sql_3)
-  const newShopify = values_3.rows.length === 1 ? values_3.rows[0] : []
+  // const newShopify = values_3.rows.length === 1 ? values_3.rows[0] : []
 
-  res.json({ topShopify: out, newShopify, })
+  res.json({ topShopify: out, newShopify: values_3.rows, })
 })
 
 // get all pins matching the keyword
