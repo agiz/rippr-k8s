@@ -739,9 +739,38 @@ apiRoutes.get('/top', async (req, res) => {
   `
 
   const values_3 = await pgClient.query(sql_3)
-  // const newShopify = values_3.rows.length === 1 ? values_3.rows[0] : []
 
-  res.json({ topShopify: out, newShopify: values_3.rows, })
+  const promoter_ids = new Set(values_3.rows.map(row => row.promoter_id))
+  const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
+
+  const sql_promoter = `
+    SELECT * FROM
+    (
+      SELECT promoter_id, MAX(followers) followers, MAX(monthly_views) monthly_views, MIN(crawled_at) min_crawled_at, MAX(crawled_at) max_crawled_at
+      FROM promoter_crawl
+      WHERE promoter_id IN (${promoter_ids_str})
+      GROUP BY 1
+    ) t1, promoter
+    WHERE
+    promoter.id IN (${promoter_ids_str}) AND
+    t1.promoter_id = promoter.id
+  `
+
+  const values_sql_promoter = await pgClient.query(sql_promoter)
+
+  const promoter_dict = {}
+
+  values_sql_promoter.rows.forEach((row) => {
+    promoter_dict[row.promoter_id] = row
+  })
+
+  const newShopify = []
+
+  values_3.rows.forEach((row) => {
+    newShopify.push({ pin: row, promoter: promoter_dict[row.promoter_id] })
+  })
+
+  res.json({ topShopify: out, newShopify, })
 })
 
 // get all pins matching the keyword
