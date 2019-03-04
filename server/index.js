@@ -740,19 +740,19 @@ apiRoutes.get('/top', async (req, res) => {
 
   const values_3 = await pgClient.query(sql_3)
 
-  const promoter_ids = new Set(values_3.rows.map(row => row.promoter_id))
-  const promoter_ids_str = [...promoter_ids].map(x => `'${x}'`).join(',')
+  const promoter_ids_2 = new Set(values_3.rows.map(row => row.promoter_id))
+  const promoter_ids_str_2 = [...promoter_ids_2].map(x => `'${x}'`).join(',')
 
   const sql_promoter = `
     SELECT * FROM
     (
       SELECT promoter_id, MAX(followers) followers, MAX(monthly_views) monthly_views, MIN(crawled_at) min_crawled_at, MAX(crawled_at) max_crawled_at
       FROM promoter_crawl
-      WHERE promoter_id IN (${promoter_ids_str})
+      WHERE promoter_id IN (${promoter_ids_str_2})
       GROUP BY 1
     ) t1, promoter
     WHERE
-    promoter.id IN (${promoter_ids_str}) AND
+    promoter.id IN (${promoter_ids_str_2}) AND
     t1.promoter_id = promoter.id
   `
 
