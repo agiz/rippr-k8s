@@ -713,7 +713,7 @@ apiRoutes.get('/top', async (req, res) => {
     topPin[row.promoter_id] = row
   })
 
-  console.dir(topPin)
+  // console.dir(topPin)
 
   const out = []
 
@@ -721,7 +721,29 @@ apiRoutes.get('/top', async (req, res) => {
     out.push({ promoter: row, pin: topPin[row.promoter_id] })
   })
 
-  res.json(out)
+  const sql_3 = `
+    SELECT pin_crawl.*, pin.* FROM (
+    SELECT pin_crawl.pin_id, MIN(crawled_at) crawled_at
+    FROM pin_crawl, pin
+    WHERE
+    pin.is_shopify = true AND
+    pin_crawl.pin_id = pin.id
+    group by 1
+    order by 2 desc
+    --order by pin_crawl.crawled_at desc
+    limit 10
+    ) t1, pin, pin_crawl
+    where t1.pin_id = pin.id
+    and t1.pin_id = pin_crawl.pin_id
+    and t1.crawled_at = pin_crawl.crawled_at
+    order by pin_crawl.crawled_at desc
+    --limit 10
+  `
+
+  const values_3 = await pgClient.query(sql_3)
+  const newShopify = values_3.rows.length === 1 ? values_3.rows[0] : []
+
+  res.json({ topShopify: out, newShopify, })
 })
 
 // get all pins matching the keyword
