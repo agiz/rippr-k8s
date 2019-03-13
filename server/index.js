@@ -115,6 +115,41 @@ app.get('/values/ip', async (req, res) => {
   // })
 })
 
+app.get('/newpins', async (req, res) => {
+  console.log("GET /newpins")
+
+  const out = []
+
+  const today = new Date().toISOString().split('T')[0]
+
+  let date = new Date('2018-11-07')
+  let date_iso = date.toISOString().split('T')[0]
+
+  while (date_iso !== today) {
+    const query = `
+      select count(t1.*)
+      from (
+      select distinct pin_id from pin_crawl
+      where date(crawled_at) = '2019-03-12'
+      --and profile_id = 57
+      except
+      select distinct pin_id from pin_crawl
+      where date(crawled_at) <= '2019-03-11'
+      ) t1
+    `
+
+    const values = await pgClient.query(query)
+    const [pinCount] = values.rows
+
+    out.push({ date: date_iso, pinCount })
+
+    date.setDate(date.getDate() + 1)
+    date_iso = date.toISOString().split('T')[0]
+  }
+
+  res.json(out)
+})
+
 app.get('/values/all', async (req, res) => {
   console.log("GET /values/all")
   const values = await pgClient.query('SELECT * from profile')
