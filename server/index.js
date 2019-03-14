@@ -130,11 +130,11 @@ app.get('/newpins', async (req, res) => {
       select count(t1.*)
       from (
       select distinct pin_id from pin_crawl
-      where date(crawled_at) = '2019-03-12'
+      where date(crawled_at) = '${date_iso}'
       --and profile_id = 57
       except
       select distinct pin_id from pin_crawl
-      where date(crawled_at) <= '2019-03-11'
+      where date(crawled_at) < '${date_iso}'
       ) t1
     `
 
