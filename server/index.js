@@ -223,6 +223,7 @@ apiRoutes.use(async (req, res, next) => {
   try {
     const result = await axios.get(`http://${amemberIp}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=${phpsessid}`)
     if (result.data.ok) {
+      req.amemberId = result.data.user_id
       next()
     } else {
       res.status(401).json({
@@ -845,7 +846,7 @@ apiRoutes.get('/profiles', async (req, res) => {
   console.log("(route) GET /profiles")
 
   const values = await pgClient.query('SELECT profile.id, profile.gender, profile.country_code, profile.interest, user_agent.user_agent FROM profile LEFT JOIN user_agent ON profile.user_agent_id = user_agent.id;')
-  res.json(values.rows)
+  res.json({ profiles: values.rows, amemberId: req.amemberId })
 })
 
 // get pin(s) by id (by an array of ids)
