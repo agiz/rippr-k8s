@@ -242,6 +242,14 @@ apiRoutes.use(async (req, res, next) => {
   }
 })
 
+// get all search terms for a user
+apiRoutes.get('/search', async (req, res) => {
+  console.log("(route) GET /search")
+
+  const values = await pgClient.query(`SELECT created_at, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country FROM user_search WHERE id = '${req.amemberId}';`)
+  res.json(values.rows)
+})
+
 // get all keywords (for auto complete purposes)
 apiRoutes.get('/keywords', async (req, res) => {
   console.log("(route) GET /keywords")
@@ -290,7 +298,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const dateTo = dateRange.end
   // const dateFrom = 'dateFrom' in req.body ? req.body.dateFrom : '1970-01-01'
   // const dateTo = 'dateTo' in req.body ? req.body.dateTo : '2030-12-31'
-  const countryCode = 'countryCode' in req.body ? `profile.country_code = '${req.body.countryCode}'` : 'true'
+  // const countryCode = 'countryCode' in req.body ? `profile.country_code = '${req.body.countryCode}'` : 'true'
   const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `'${x}'`).join(',')})` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${req.body.daysActive}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${req.body.isShopify}` : true
@@ -302,10 +310,42 @@ apiRoutes.post('/searchTest', async (req, res) => {
   console.log('dateRangeEnd:', dateRange.end)
   console.log('dateFrom:', dateFrom)
   console.log('dateTo:', dateTo)
-  console.log('countryCode:', countryCode)
+  // console.log('countryCode:', countryCode)
   console.log('daysActive:', daysActive)
   console.log('isShopify:', isShopify)
   console.log('selectedCountries:', selectedCountries)
+
+  const vals = [
+    term,
+    sortBy,
+    'id' in req.body ? req.body.id : 0,
+    'cutoffValue' in req.body ? req.body.cutoffValue + '' : '0',
+    dateFrom,
+    dateTo,
+    'daysActive' in req.body ? req.body.daysActive : 0,
+    'isShopify' in req.body ? req.body.isShopify : 'false',
+    'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `'${x}'`).join(',')}}` : '{}',
+  ]
+
+  console.log('----------------------------------')
+  console.log(vals)
+  console.log('----------------------------------')
+
+  // TODO: dry run first
+  // pgClient.query(
+  //   'INSERT INTO user_search(term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)',
+  //   [
+  //     term,
+  //     sortBy,
+  //     'id' in req.body ? req.body.id : 0,
+  //     'cutoffValue' in req.body ? req.body.cutoffValue + '' : '0',
+  //     dateFrom,
+  //     dateTo,
+  //     'daysActive' in req.body ? req.body.daysActive : 0,
+  //     'isShopify' in req.body ? req.body.isShopify : 'false',
+  //     'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `'${x}'`).join(',')}}` : '{}'
+  //   ]
+  // )
 
   const sql_pin_crawl = `
     WITH p1 AS
