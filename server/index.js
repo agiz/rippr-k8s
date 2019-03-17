@@ -321,11 +321,11 @@ apiRoutes.post('/searchTest', async (req, res) => {
     sortBy,
     'id' in req.body ? req.body.id : 0,
     'cutoffValue' in req.body ? req.body.cutoffValue + '' : '0',
-    dateFrom,
-    dateTo,
+    new Date(dateFrom).toISOString().split('T').join(' ').split('.')[0] + '+00',
+    new Date(dateTo).toISOString().split('T').join(' ').split('.')[0] + '+00',
     'daysActive' in req.body ? req.body.daysActive : 0,
     'isShopify' in req.body ? req.body.isShopify : 'false',
-    'selectedCountries' in req.body ? `${req.body.selectedCountries.map(x => `'${x}'`).join(',')}` : `''`,
+    'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `${x}`).join(',')}}` : '{}',
   ]
 
   console.log('----------------------------------')
@@ -350,7 +350,7 @@ false,
 */
 
   pgClient.query(
-    'INSERT INTO user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, TIMESTAMP WITH TIME ZONE $6, TIMESTAMP WITH TIME ZONE $7, $8, $9, ARRAY[$10])',
+    'INSERT INTO user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
     vals
   )
 
