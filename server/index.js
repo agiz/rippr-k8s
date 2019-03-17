@@ -316,6 +316,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   console.log('selectedCountries:', selectedCountries)
 
   const vals = [
+    req.amemberId,
     term,
     sortBy,
     'id' in req.body ? req.body.id : 0,
@@ -324,28 +325,34 @@ apiRoutes.post('/searchTest', async (req, res) => {
     dateTo,
     'daysActive' in req.body ? req.body.daysActive : 0,
     'isShopify' in req.body ? req.body.isShopify : 'false',
-    'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `'${x}'`).join(',')}}` : '{}',
+    'selectedCountries' in req.body ? `${req.body.selectedCountries.map(x => `'${x}'`).join(',')}` : `''`,
   ]
 
   console.log('----------------------------------')
   console.log(vals)
   console.log('----------------------------------')
 
-  // TODO: dry run first
-  // pgClient.query(
-  //   'INSERT INTO user_search(term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9)',
-  //   [
-  //     term,
-  //     sortBy,
-  //     'id' in req.body ? req.body.id : 0,
-  //     'cutoffValue' in req.body ? req.body.cutoffValue + '' : '0',
-  //     dateFrom,
-  //     dateTo,
-  //     'daysActive' in req.body ? req.body.daysActive : 0,
-  //     'isShopify' in req.body ? req.body.isShopify : 'false',
-  //     'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `'${x}'`).join(',')}}` : '{}'
-  //   ]
-  // )
+/*
+INSERT INTO
+user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country)
+VALUES(
+1,
+'dogs',
+'id',
+0,
+'0',
+TIMESTAMP WITH TIME ZONE '2019-02-14T23:00:00.000Z',
+'2019-03-17 22:59:00+00',
+1,
+false,
+'{AU,CA,FR,US,UK}'
+)
+*/
+
+  pgClient.query(
+    'INSERT INTO user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, TIMESTAMP WITH TIME ZONE $6, TIMESTAMP WITH TIME ZONE $7, $8, $9, ARRAY[$10])',
+    vals
+  )
 
   const sql_pin_crawl = `
     WITH p1 AS
