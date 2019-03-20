@@ -448,7 +448,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       -- AND pc1.pin_crawl_id < 68994
       -- AND false
       -- AND p1.is_shopify = true
-      AND ('${term}' = ANY(pc1.keywords) OR p1.title ILIKE '%${term}%' OR p1.description ILIKE '%${term}%')
+      AND ('${term}' = ANY(pc1.keywords) OR p1.title ILIKE '%${term}%' OR p1.description ILIKE '%${term}%' OR p1.ad_url ILIKE '%${term}%')
     ORDER BY
       ${sortMap[sortBy]}
       -- pc1.pin_crawl_id DESC
