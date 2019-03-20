@@ -328,27 +328,6 @@ apiRoutes.post('/searchTest', async (req, res) => {
     'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `${x}`).join(',')}}` : '{}',
   ]
 
-  console.log('----------------------------------')
-  console.log(vals)
-  console.log('----------------------------------')
-
-/*
-INSERT INTO
-user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country)
-VALUES(
-1,
-'dogs',
-'id',
-0,
-'0',
-TIMESTAMP WITH TIME ZONE '2019-02-14T23:00:00.000Z',
-'2019-03-17 22:59:00+00',
-1,
-false,
-'{AU,CA,FR,US,UK}'
-)
-*/
-
   pgClient.query(
     'INSERT INTO user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
     vals
