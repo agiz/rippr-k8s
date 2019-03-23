@@ -658,7 +658,7 @@ apiRoutes.post('/relatedpins', async (req, res) => {
     SELECT id, promoter_id, description, ad_url, image, mobile_link, is_video, title, is_shopify
     FROM pin
     WHERE promoter_id = '${id}'
-    LIMIT 24
+    LIMIT 96
   `
 
   const values = await pgClient.query(sql)
