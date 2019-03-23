@@ -667,7 +667,7 @@ apiRoutes.post('/relatedpins', async (req, res) => {
   const pin_ids_str = [...pin_ids].map(x => `'${x}'`).join(',')
 
   const sql_pin_crawl = `
-    SELECT pin_id, MAX(saves) saves, MAX(repin_count) repin_count, ARRAY_AGG(DISTINCT keyword) keywords, MAX(crawled_at) crawled_at
+    SELECT pin_id, MAX(saves) saves, MAX(repin_count) repin_count, ARRAY_AGG(DISTINCT keyword) keywords, MAX(crawled_at) crawled_at, COUNT(DISTINCT DATE(crawled_at)) days_seen
     FROM pin_crawl
     WHERE pin_id IN (${pin_ids_str})
     GROUP BY 1
