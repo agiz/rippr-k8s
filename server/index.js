@@ -133,7 +133,7 @@ app.get('/newpins/profile', async (req, res) => {
     const crawled_at = new Date(row.crawled_at).toISOString().split('T')[0]
 
     // row.profiles.forEach(async (profile) => {
-    for (const profile of profiles) {
+    for (const profile of row.profiles) {
       console.log('profile:', profile)
       const query = `
         select count(t1.*)
