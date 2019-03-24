@@ -132,7 +132,7 @@ app.get('/newpins/profile', async (req, res) => {
   profile_values.rows.forEach((row) => {
     console.log('row:', row)
 
-    const crawled_at = row.crawled_at.split('T')[0]
+    const crawled_at = new Date(row.crawled_at).toISOString().split('T')[0]
     console.log('crawled_at:', crawled_at)
 
     row.profiles.forEach(async (profile) => {
