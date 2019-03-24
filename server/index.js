@@ -129,7 +129,8 @@ app.get('/newpins/profile', async (req, res) => {
 
   const profile_values = await pgClient.query(profile_query)
 
-  profile_values.rows.forEach(async (row) => {
+  // profile_values.rows.forEach(async (row) => {
+  for (const row of profile_values.rows) {
     const crawled_at = new Date(row.crawled_at).toISOString().split('T')[0]
 
     // row.profiles.forEach(async (profile) => {
@@ -154,8 +155,9 @@ app.get('/newpins/profile', async (req, res) => {
 
       out.push({ date: crawled_at, profile, pinCount: pinCount.count })
     }
+  }
     // })
-  })
+  // })
 
 
   res.json(out)
