@@ -137,18 +137,18 @@ app.get('/newpins/profile', async (req, res) => {
         select count(t1.*)
         from (
         select distinct pin_id from pin_crawl
-        where date(crawled_at) = '${row.created_at}'
+        where date(crawled_at) = '${row.crawled_at}'
         and profile_id = '${profile}'
         except
         select distinct pin_id from pin_crawl
-        where date(crawled_at) < '${row.created_at}'
+        where date(crawled_at) < '${row.crawled_at}'
         ) t1
       `
 
       const values = await pgClient.query(query)
       const [pinCount] = values.rows
 
-      out.push({ date: row.created_at, profile, pinCount: pinCount.count })
+      out.push({ date: row.crawled_at, profile, pinCount: pinCount.count })
     })
   })
 
