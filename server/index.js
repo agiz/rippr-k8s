@@ -115,6 +115,45 @@ app.get('/values/ip', async (req, res) => {
   // })
 })
 
+app.get('/newpins/profile', async (req, res) => {
+  console.log("GET /newpins/profile")
+
+  const out = []
+
+  const profile_query = `
+    select date(crawled_at) crawled_at, array_agg(distinct profile_id) profiles
+    from pin_crawl
+    group by 1
+    order by 1
+  `
+
+  const profile_values = await pgClient.query(profile_query)
+
+  profile_values.rows.forEach((row) => {
+    row.profiles.forEach(async (profile) => {
+      const query = `
+        select count(t1.*)
+        from (
+        select distinct pin_id from pin_crawl
+        where date(crawled_at) = '${row.created_at}'
+        and profile_id = '${profile}'
+        except
+        select distinct pin_id from pin_crawl
+        where date(crawled_at) < '${row.created_at}'
+        ) t1
+      `
+
+      const values = await pgClient.query(query)
+      const [pinCount] = values.rows
+
+      out.push({ date: row.created_at, profile, pinCount: pinCount.count })
+    })
+  })
+
+
+  res.json(out)
+})
+
 app.get('/newpins', async (req, res) => {
   console.log("GET /newpins")
 
