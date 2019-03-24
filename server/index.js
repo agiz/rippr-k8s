@@ -124,7 +124,8 @@ app.get('/newpins/profile', async (req, res) => {
     select date(crawled_at) crawled_at, array_agg(distinct profile_id) profiles
     from pin_crawl
     group by 1
-    order by 1
+    order by 1 desc
+    limit 7
   `
 
   const profile_values = await pgClient.query(profile_query)
