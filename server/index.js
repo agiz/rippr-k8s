@@ -130,7 +130,9 @@ app.get('/newpins/profile', async (req, res) => {
   const profile_values = await pgClient.query(profile_query)
 
   profile_values.rows.forEach((row) => {
+    console.log('row:', row)
     row.profiles.forEach(async (profile) => {
+      console.log('profile:', profile)
       const query = `
         select count(t1.*)
         from (
