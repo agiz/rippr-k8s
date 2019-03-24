@@ -170,31 +170,49 @@ app.get('/newpins', async (req, res) => {
   const out = []
 
   const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const yesterday_iso = yesterday.toISOString().split('T')[0]
 
-  let date = new Date('2018-11-07')
-  let date_iso = date.toISOString().split('T')[0]
+  const query = `
+    select count(t1.*)
+    from (
+    select distinct pin_id from pin_crawl
+    where date(crawled_at) = '${yesterday_iso}'
+    except
+    select distinct pin_id from pin_crawl
+    where date(crawled_at) < '${yesterday_iso}'
+    ) t1
+  `
 
-  while (date_iso !== today) {
-    const query = `
-      select count(t1.*)
-      from (
-      select distinct pin_id from pin_crawl
-      where date(crawled_at) = '${date_iso}'
-      --and profile_id = 57
-      except
-      select distinct pin_id from pin_crawl
-      where date(crawled_at) < '${date_iso}'
-      ) t1
-    `
+  const values = await pgClient.query(query)
+  const [pinCount] = values.rows
 
-    const values = await pgClient.query(query)
-    const [pinCount] = values.rows
+  out.push({ date: yesterday_iso, pinCount })
 
-    out.push({ date: date_iso, pinCount })
+  // let date = new Date('2018-11-07')
+  // let date_iso = date.toISOString().split('T')[0]
 
-    date.setDate(date.getDate() + 1)
-    date_iso = date.toISOString().split('T')[0]
-  }
+  // while (date_iso !== today) {
+  //   const query = `
+  //     select count(t1.*)
+  //     from (
+  //     select distinct pin_id from pin_crawl
+  //     where date(crawled_at) = '${date_iso}'
+  //     except
+  //     select distinct pin_id from pin_crawl
+  //     where date(crawled_at) < '${date_iso}'
+  //     ) t1
+  //   `
+  //
+  //   const values = await pgClient.query(query)
+  //   const [pinCount] = values.rows
+  //
+  //   out.push({ date: date_iso, pinCount })
+  //
+  //   date.setDate(date.getDate() + 1)
+  //   date_iso = date.toISOString().split('T')[0]
+  // }
 
   res.json(out)
 })
