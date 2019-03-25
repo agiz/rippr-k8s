@@ -860,7 +860,7 @@ apiRoutes.get('/top', async (req, res) => {
       pin_crawl.pin_id = pin.id
       GROUP BY 1
       ORDER BY 2 DESC
-      LIMIT 10
+      LIMIT 50
     ) t1, pin, pin_crawl
     WHERE t1.pin_id = pin.id
     AND t1.pin_id = pin_crawl.pin_id
@@ -899,11 +899,16 @@ apiRoutes.get('/top', async (req, res) => {
 
   const newShopify = []
 
+  const newShopifyDuplicate = new Set()
+
   values_3.rows.forEach((row) => {
-    newShopify.push({ pin: row, promoter: promoter_dict[row.promoter_id] })
+    if (!(row.promoter_id in newShopifyDuplicate)) {
+      newShopifyDuplicate.add(row.promoter_id)
+      newShopify.push({ pin: row, promoter: promoter_dict[row.promoter_id] })
+    }
   })
 
-  res.json({ topShopify: out, newShopify, })
+  res.json({ topShopify: out, newShopify: newShopify.slice(0, 10), })
 })
 
 // get all pins matching the keyword
