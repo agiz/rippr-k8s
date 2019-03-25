@@ -634,7 +634,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
     MAX(saves) saves, MAX(repin_count) repin_count
     FROM pin_crawl
     WHERE keyword = '${keyword}' AND
-    pin_id = '${id}'
+    pin_id = ${id}
     GROUP BY 1
     ORDER BY crawled_date;`
 
@@ -716,7 +716,7 @@ apiRoutes.post('/relatedpins', async (req, res) => {
   const sql = `
     SELECT id, promoter_id, description, ad_url, image, mobile_link, is_video, title, is_shopify
     FROM pin
-    WHERE promoter_id = '${id}'
+    WHERE promoter_id = ${id}
     LIMIT 96
   `
 
@@ -761,7 +761,7 @@ apiRoutes.post('/trend', async (req, res) => {
   const sql = `
     SELECT DATE(crawled_at) crawled_at, COUNT(*) frequency
     FROM pin_crawl
-    WHERE pin_id = '${id}'
+    WHERE pin_id = ${id}
     GROUP BY 1
     ORDER BY 1
   `
