@@ -851,8 +851,9 @@ apiRoutes.get('/top', async (req, res) => {
   })
 
   const sql_3 = `
-    SELECT pin_crawl.*, pin.* FROM (
-      SELECT pin_crawl.pin_id, MIN(crawled_at) crawled_at
+    SELECT DISTINCT pin_crawl.pin_id, pin_crawl.profile_id, pin_crawl.saves, pin_crawl.repin_count, pin_crawl.created_at, pin_crawl.last_repin_date, pin_crawl.keyword, pin_crawl.position, pin_crawl.user_agent, pin_crawl.crawled_at, pin.*
+    FROM (
+      SELECT pin_crawl.pin_id, MIN(crawled_at) crawled_at, MIN(keyword) keyword, MIN(profile_id) profile_id, MIN(position) pos
       FROM pin_crawl, pin
       WHERE
       pin.is_shopify = true AND
@@ -864,6 +865,9 @@ apiRoutes.get('/top', async (req, res) => {
     WHERE t1.pin_id = pin.id
     AND t1.pin_id = pin_crawl.pin_id
     AND t1.crawled_at = pin_crawl.crawled_at
+    AND t1.keyword = pin_crawl.keyword
+    AND t1.profile_id = pin_crawl.profile_id
+    AND t1.pos = pin_crawl.position
     ORDER BY pin_crawl.crawled_at DESC
   `
 
