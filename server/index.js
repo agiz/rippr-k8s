@@ -901,12 +901,20 @@ apiRoutes.get('/top', async (req, res) => {
 
   const newShopifyDuplicate = new Set()
 
-  values_3.rows.forEach((row) => {
+  // values_3.rows.forEach((row) => {
+  //   if (!(row.promoter_id in newShopifyDuplicate)) {
+  //     newShopifyDuplicate.add(row.promoter_id)
+  //     newShopify.push({ pin: row, promoter: promoter_dict[row.promoter_id] })
+  //   }
+  // })
+
+  for (const row of values_3.rows) {
+    console.log(row.promoter_id, row.promoter_id in newShopifyDuplicate)
     if (!(row.promoter_id in newShopifyDuplicate)) {
       newShopifyDuplicate.add(row.promoter_id)
       newShopify.push({ pin: row, promoter: promoter_dict[row.promoter_id] })
     }
-  })
+  }
 
   res.json({ topShopify: out, newShopify: newShopify.slice(0, 10), })
 })
