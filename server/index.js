@@ -1,7 +1,6 @@
 /* jshint esversion: 6 */
 
 // Express App Setup
-// TODO: https://www.npmjs.com/package/sqlstring
 
 const axios = require('axios')
 const bodyParser = require('body-parser')
@@ -12,6 +11,7 @@ const express = require('express')
 const LRU = require('lru-cache')
 const morgan = require('morgan')
 const Router = require('express-promise-router')
+const sqlstring = require('sqlstring')
 const { Pool } = require('pg')
 
 const keys = require('./keys')
@@ -290,7 +290,7 @@ apiRoutes.use(async (req, res, next) => {
   try {
     const result = await axios.get(`http://${amemberIp}/amember/api/check-access/by-login?_key=Mk4ga6B8bonz2x409Blq&login=${phpsessid}`)
     if (result.data.ok) {
-      req.amemberId = result.data.user_id
+      req.amemberId = sqlstring.escape(result.data.user_id)
       next()
     } else {
       res.status(401).json({
@@ -331,8 +331,6 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   // console.dir(req.body)
 
-  // TODO: check for injections
-
   const sortMap = {
     id: 'pc1.pin_crawl_id DESC',
     saves: 'pc1.saves DESC, pc1.pin_crawl_id DESC',
@@ -340,11 +338,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
     lastRepin: 'pc1.last_repin_date DESC, pc1.pin_crawl_id DESC',
   }
 
-  const sortBy = 'sortBy' in req.body && req.body.sortBy in sortMap ? req.body.sortBy : 'id'
-  // TODO: check for injections
+  const sortBy = 'sortBy' in req.body && req.body.sortBy in sortMap ? sqlstring.escape(req.body.sortBy) : 'id'
 
-  const cutoffId = 'id' in req.body ? `pc1.pin_crawl_id < ${req.body.id}` : 'true'
-  // TODO: check for injections
+  const cutoffId = 'id' in req.body ? `pc1.pin_crawl_id < ${sqlstring.escape(req.body.id)}` : 'true'
 
   const cutoffMap = {
     id: 'pc1.pin_crawl_id',
@@ -354,21 +350,19 @@ apiRoutes.post('/searchTest', async (req, res) => {
   }
 
   const cutoffValue = cutoffId !== 'true' && 'cutoffValue' in req.body ?
-  `${cutoffMap[sortBy]} <= '${req.body.cutoffValue}'` : 'true'
-  // TODO: check for injections
+  `${cutoffMap[sortBy]} <= '${sqlstring.escape(req.body.cutoffValue)}'` : 'true'
 
-  const term = 'term' in req.body ? req.body.term : ''
-  // TODO: check for injections
+  const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
 
   const dateRange = 'dateRange' in req.body ? req.body.dateRange : { start: '1970-01-01', end: '2030-12-31' }
-  const dateFrom = dateRange.start
-  const dateTo = dateRange.end
+  const dateFrom = sqlstring.escape(dateRange.start)
+  const dateTo = sqlstring.escape(dateRange.end)
   // const dateFrom = 'dateFrom' in req.body ? req.body.dateFrom : '1970-01-01'
   // const dateTo = 'dateTo' in req.body ? req.body.dateTo : '2030-12-31'
   // const countryCode = 'countryCode' in req.body ? `profile.country_code = '${req.body.countryCode}'` : 'true'
-  const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `'${x}'`).join(',')})` : 'true'
-  const daysActive = 'daysActive' in req.body ? `da.days_active >= ${req.body.daysActive}` : 'true'
-  const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${req.body.isShopify}` : true
+  const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `'${sqlstring.escape(x)}'`).join(',')})` : 'true'
+  const daysActive = 'daysActive' in req.body ? `da.days_active >= ${sqlstring.escape(req.body.daysActive)}` : 'true'
+  const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true
 
   console.log('cutoffId:', cutoffId)
   console.log('term:', term)
@@ -386,13 +380,13 @@ apiRoutes.post('/searchTest', async (req, res) => {
     req.amemberId,
     term,
     sortBy,
-    'id' in req.body ? req.body.id : 0,
-    'cutoffValue' in req.body ? req.body.cutoffValue + '' : '0',
+    'id' in req.body ? sqlstring.escape(req.body.id) : 0,
+    'cutoffValue' in req.body ? sqlstring.escape(req.body.cutoffValue) + '' : '0',
     new Date(dateFrom).toISOString().split('T').join(' ').split('.')[0] + '+00',
     new Date(dateTo).toISOString().split('T').join(' ').split('.')[0] + '+00',
-    'daysActive' in req.body ? req.body.daysActive : 0,
-    'isShopify' in req.body ? req.body.isShopify : 'false',
-    'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `${x}`).join(',')}}` : '{}',
+    'daysActive' in req.body ? sqlstring.escape(req.body.daysActive) : 0,
+    'isShopify' in req.body ? sqlstring.escape(req.body.isShopify) : 'false',
+    'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `${sqlstring.escape(x)}`).join(',')}}` : '{}',
   ]
 
   pgClient.query(
@@ -563,13 +557,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
 apiRoutes.post('/search', async (req, res) => {
   console.log("(route) GET /search")
 
-  // TODO: check for injections
+  const cutoff_id = 'id' in req.body ? `id < ${sqlstring.escape(req.body.id)} AND` : ''
 
-  const cutoff_id = 'id' in req.body ? `id < ${req.body.id} AND` : ''
-  // TODO: check for injections
-
-  const term = 'term' in req.body ? req.body.term : ''
-  // TODO: check for injections
+  const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
 
   const sql_pin_crawl = `SELECT t1.id, t1.pin_id, t1.profile_id, t1.saves, t1.repin_count, t1.created_at, t1.last_repin_date, t1.keyword, t1.position, t1.crawled_at
     FROM pin_crawl t1
@@ -623,11 +613,9 @@ apiRoutes.post('/search', async (req, res) => {
 apiRoutes.post('/pindetails', async (req, res) => {
   console.log("(route) POST /pindetails")
 
-  const id = 'id' in req.body ? req.body.id : ''
-  // TODO: check for injections
+  const id = 'id' in req.body ? sqlstring.escape(req.body.id) : ''
 
-  const keyword = 'keyword' in req.body ? req.body.keyword : ''
-  // TODO: check for injections
+  const keyword = 'keyword' in req.body ? sqlstring.escape(req.body.keyword) : ''
 
   console.log('id:', id)
   console.log('keyword:', keyword)
@@ -714,8 +702,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
 apiRoutes.post('/relatedpins', async (req, res) => {
   console.log("(route) POST /relatedpins")
 
-  const id = 'id' in req.body ? req.body.id : ''
-  // TODO: check for injections
+  const id = 'id' in req.body ? sqlstring.escape(req.body.id) : ''
 
   if (id === '') {
     return res.json([])
@@ -760,8 +747,7 @@ apiRoutes.post('/relatedpins', async (req, res) => {
 apiRoutes.post('/trend', async (req, res) => {
   console.log("(route) POST /trend")
 
-  const id = 'id' in req.body ? req.body.id : ''
-  // TODO: check for injections
+  const id = 'id' in req.body ? sqlstring.escape(req.body.id) : ''
 
   if (id === '') {
     return res.json([])
@@ -949,11 +935,9 @@ apiRoutes.get('/top', async (req, res) => {
 apiRoutes.post('/search2', async (req, res) => {
   console.log("(route) GET /search")
 
-  const cutoff_id = 'id' in req.body ? `id < ${req.body.id} AND` : ''
-  // TODO: check for injections
+  const cutoff_id = 'id' in req.body ? `id < ${sqlstring.escape(req.body.id)} AND` : ''
 
-  const term = 'term' in req.body ? req.body.term : ''
-  // TODO: check for injections
+  const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
 
   const sql = `SELECT t1.id, t1.pin_id, t1.profile_id, t1.saves, t1.repin_count, t1.created_at, t1.last_repin_date, t1.keyword, t1.position, t1.crawled_at
     FROM pin_crawl t1
@@ -989,7 +973,7 @@ apiRoutes.get('/profiles', async (req, res) => {
 apiRoutes.post('/pin', async (req, res) => {
   console.log("(route) POST /pin")
 
-  const ids = req.body.map(x => `'${x}'`).join(',')
+  const ids = req.body.map(x => `'${sqlstring.escape(x)}'`).join(',')
   const sql = `SELECT id, promoter_id, description, ad_url, image, mobile_link, is_video, title, is_shopify FROM pin WHERE id IN (${ids});`
 
   const values = await pgClient.query(sql)
@@ -1000,7 +984,7 @@ apiRoutes.post('/pin', async (req, res) => {
 apiRoutes.post('/promoter', async (req, res) => {
   console.log("(route) POST /promoter")
 
-  const ids = req.body.map(x => `'${x}'`).join(',')
+  const ids = req.body.map(x => `'${sqlstring.escape(x)}'`).join(',')
   const sql = `SELECT id, username, location, external_url, description, image FROM promoter WHERE id IN (${ids});`
 
   const values = await pgClient.query(sql)
@@ -1012,7 +996,7 @@ apiRoutes.post('/promoter', async (req, res) => {
 apiRoutes.post('/promoterdetails', async (req, res) => {
   console.log("(route) POST /promoterdetails")
 
-  const ids = req.body.map(x => `'${x}'`).join(',')
+  const ids = req.body.map(x => `'${sqlstring.escape(x)}'`).join(',')
   const sql = `SELECT DISTINCT ON (promoter_id) promoter_id, followers, monthly_views FROM promoter_crawl WHERE promoter_id IN (${ids}) ORDER BY promoter_id, crawled_at DESC;`
 
   const values = await pgClient.query(sql)
