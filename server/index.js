@@ -338,7 +338,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
     lastRepin: 'pc1.last_repin_date DESC, pc1.pin_crawl_id DESC',
   }
 
-  const sortBy = 'sortBy' in req.body && req.body.sortBy in sortMap ? sqlstring.escape(req.body.sortBy) : 'id'
+  const sortBy = 'sortBy' in req.body && req.body.sortBy in sortMap ? req.body.sortBy : 'id'
+  // console.log('sortBy:', req.body.sortBy, sqlstring.escape(req.body.sortBy))
 
   const cutoffId = 'id' in req.body ? `pc1.pin_crawl_id < ${sqlstring.escape(req.body.id)}` : 'true'
 
@@ -353,7 +354,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
   `${cutoffMap[sortBy]} <= ${sqlstring.escape(req.body.cutoffValue)}` : 'true'
   // `${cutoffMap[sortBy]} <= '${sqlstring.escape(req.body.cutoffValue)}'` : 'true'
 
-  const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
+  // const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
+  const term = 'term' in req.body ? req.body.term : ''
 
   const dateRange = 'dateRange' in req.body ? req.body.dateRange : { start: '1970-01-01', end: '2030-12-31' }
   const dateFrom = dateRange.start
