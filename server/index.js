@@ -619,7 +619,8 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
   const id = 'id' in req.body ? sqlstring.escape(req.body.id) : ''
 
-  const keyword = 'keyword' in req.body ? sqlstring.escape(req.body.keyword) : ''
+  // const keyword = 'keyword' in req.body ? sqlstring.escape(req.body.keyword) : ''
+  const keyword = 'keyword' in req.body ? req.body.keyword : ''
 
   console.log('id:', id)
   console.log('keyword:', keyword)
@@ -941,7 +942,7 @@ apiRoutes.post('/search2', async (req, res) => {
 
   const cutoff_id = 'id' in req.body ? `id < ${sqlstring.escape(req.body.id)} AND` : ''
 
-  const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
+  const term = 'term' in req.body ? req.body.term : '' // TODO
 
   const sql = `SELECT t1.id, t1.pin_id, t1.profile_id, t1.saves, t1.repin_count, t1.created_at, t1.last_repin_date, t1.keyword, t1.position, t1.crawled_at
     FROM pin_crawl t1
