@@ -355,8 +355,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const term = 'term' in req.body ? sqlstring.escape(req.body.term) : ''
 
   const dateRange = 'dateRange' in req.body ? req.body.dateRange : { start: '1970-01-01', end: '2030-12-31' }
-  const dateFrom = sqlstring.escape(dateRange.start)
-  const dateTo = sqlstring.escape(dateRange.end)
+  const dateFrom = dateRange.start
+  const dateTo = dateRange.end
   // const dateFrom = 'dateFrom' in req.body ? req.body.dateFrom : '1970-01-01'
   // const dateTo = 'dateTo' in req.body ? req.body.dateTo : '2030-12-31'
   // const countryCode = 'countryCode' in req.body ? `profile.country_code = '${req.body.countryCode}'` : 'true'
