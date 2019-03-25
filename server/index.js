@@ -618,6 +618,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
   console.log("(route) POST /pindetails")
 
   const id = 'id' in req.body ? sqlstring.escape(req.body.id) : ''
+  console.log('id:', req.body.id, sqlstring.escape(req.body.id))
 
   // const keyword = 'keyword' in req.body ? sqlstring.escape(req.body.keyword) : ''
   const keyword = 'keyword' in req.body ? req.body.keyword : ''
@@ -640,7 +641,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
   const values = await pgClient.query(sql)
 
-  const sql_pin = `SELECT * FROM pin WHERE id = '${id}'`
+  const sql_pin = `SELECT * FROM pin WHERE id = ${id}`
   const pin_values = await pgClient.query(sql_pin)
 
   const promoter_id = pin_values.rows[0].promoter_id
@@ -668,14 +669,14 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const promotedPins = promoted_pins.rows.length === 1 ? promoted_pins.rows[0].promoted_pins_count : 0
 
   const sql_pin_position = `
-    SELECT ROUND(AVG(position)::numeric, 2) "position" FROM pin_crawl WHERE pin_id = '${id}'
+    SELECT ROUND(AVG(position)::numeric, 2) "position" FROM pin_crawl WHERE pin_id = ${id}
   `
   const pin_position = await pgClient.query(sql_pin_position)
   console.log('pin position:', pin_position.rows)
   const pinPosition = pin_position.rows.length === 1 ? pin_position.rows[0].position : 0.0
 
   const sql_days_seen = `
-    SELECT COUNT(DISTINCT DATE(crawled_at)) days_seen FROM pin_crawl WHERE pin_id = '${id}'
+    SELECT COUNT(DISTINCT DATE(crawled_at)) days_seen FROM pin_crawl WHERE pin_id = ${id}
   `
   const days_seen = await pgClient.query(sql_days_seen)
   console.log('days seen', days_seen.rows)
