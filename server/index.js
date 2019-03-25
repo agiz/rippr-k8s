@@ -915,7 +915,34 @@ apiRoutes.get('/top', async (req, res) => {
     }
   }
 
-  res.json({ topShopify: out, newShopify: newShopify.slice(0, 10), })
+  const sql_trendy = `
+    SELECT
+      *
+    FROM (
+      SELECT
+        pin_id,
+        MAX(saves) saves,
+        MAX(repin_count) repin_count,
+        ARRAY_AGG(keyword) keyword
+      FROM
+        pin_crawl
+      GROUP BY
+        1 ) t1,
+      pin,
+      promoter
+    WHERE
+      pin.is_shopify = TRUE
+      AND pin.id = t1.pin_id
+      AND pin.promoter_id = promoter.id
+    ORDER BY
+      2 DESC
+    LIMIT
+      25
+  `
+
+  const values_sql_trendy = await pgClient.query(sql_trendy)
+
+  res.json({ topShopify: out, newShopify: newShopify.slice(0, 10), trendyShopify: values_sql_trendy.rows })
 })
 
 // get all pins matching the keyword
