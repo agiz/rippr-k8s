@@ -125,7 +125,7 @@ app.get('/newpins/profile', async (req, res) => {
     from pin_crawl
     group by 1
     order by 1 desc
-    limit 7
+    limit 1
   `
 
   const profile_values = await pgClient.query(profile_query)
