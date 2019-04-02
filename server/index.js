@@ -239,7 +239,7 @@ app.get('/newpromoters', async (req, res) => {
   `
 
   const values = await pgClient.query(query)
-  const [pinCount] = values.rows
+  const [promoterCount] = values.rows
 
   out.push({ date: yesterday_iso, promoterCount })
 
