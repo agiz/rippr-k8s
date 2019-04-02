@@ -217,6 +217,35 @@ app.get('/newpins', async (req, res) => {
   res.json(out)
 })
 
+app.get('/newpromoters', async (req, res) => {
+  console.log("GET /newpromoters")
+
+  const out = []
+
+  const today = new Date().toISOString().split('T')[0]
+  const yesterday = new Date(today)
+  yesterday.setDate(yesterday.getDate() - 1)
+  const yesterday_iso = yesterday.toISOString().split('T')[0]
+
+  const query = `
+    select count(t1.*)
+    from (
+      select distinct promoter_id from promoter_crawl
+      where date(crawled_at) = '${yesterday_iso}'
+      except
+      select distinct promoter_id from promoter_crawl
+      where date(crawled_at) < '${yesterday_iso}'
+    ) t1
+  `
+
+  const values = await pgClient.query(query)
+  const [pinCount] = values.rows
+
+  out.push({ date: yesterday_iso, promoterCount })
+
+  res.json(out)
+})
+
 app.get('/values/all', async (req, res) => {
   console.log("GET /values/all")
   const values = await pgClient.query('SELECT * from profile')
