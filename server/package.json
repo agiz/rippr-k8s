@@ -12,10 +12,17 @@
         "sqlstring": "^2.3.1"
     },
     "devDependencies": {
-        "nodemon": "1.18.3"
+        "chai": "^4.2.0",
+        "chai-as-promised": "^7.1.1",
+        "mocha": "^6.0.2",
+        "nodemon": "^1.18.10",
+        "request": "^2.88.0",
+        "request-promise": "^4.2.4",
+        "tough-cookie": "^3.0.1"
     },
     "scripts": {
         "dev": "nodemon",
+        "test": "mocha --timeout 5000",
         "start": "node index.js"
     }
 }
