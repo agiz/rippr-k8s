@@ -301,7 +301,7 @@ apiRoutes.post('/userpin', async (req, res) => {
 
   const vals = [
     req.amemberId,
-    'pin_id' in req.body ? sqlstring.escape(req.body.pin_id) : '0',
+    'pin_id' in req.body ? req.body.pin_id : '0',
   ]
 
   const sql = sqlstring.format('INSERT INTO user_pin(user_id, pin_id) VALUES(?, ?)', vals)
