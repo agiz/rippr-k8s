@@ -301,7 +301,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   console.log("(route) POST /searchTest")
 
   const sortMap = {
-    id: 'pc1.pin_crawl_id DESC',
+    id: 'pc1.created_at DESC, pc1.pin_crawl_id DESC',
     saves: 'pc1.saves DESC, pc1.pin_crawl_id DESC',
     daysActive: 'da.days_active DESC, pc1.pin_crawl_id DESC',
     lastRepin: 'pc1.last_repin_date DESC, pc1.pin_crawl_id DESC',
@@ -312,7 +312,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const cutoffId = 'id' in req.body ? `pc1.pin_crawl_id < ${sqlstring.escape(req.body.id)}` : 'true'
 
   const cutoffMap = {
-    id: 'pc1.pin_crawl_id',
+    id: 'pc1.created_at',
     saves: 'pc1.saves',
     daysActive: 'da.days_active',
     lastRepin: 'pc1.last_repin_date',
