@@ -304,12 +304,15 @@ apiRoutes.post('/userpin', async (req, res) => {
     'pin_id' in req.body ? sqlstring.escape(req.body.pin_id) : '0',
   ]
 
-  console.log(vals)
+  const sql = sqlstring.format('INSERT INTO user_pin(user_id, pin_id) VALUES(?, ?)', vals)
 
-  pgClient.query(
-    'INSERT INTO user_pin(user_id, pin_id) VALUES($1, $2)',
-    vals
-  )
+  console.log(vals)
+  pgClient.query(sql)
+
+  // pgClient.query(
+  //   'INSERT INTO user_pin(user_id, pin_id) VALUES($1, $2)',
+  //   vals
+  // )
 
   // insert into user_pin (user_id, pin_id) values (1, '94716398399846263')
 
