@@ -296,6 +296,22 @@ apiRoutes.get('/keywords', async (req, res) => {
   res.json(values.rows)
 })
 
+apiRoutes.post('/userpin', async (req, res) => {
+  console.log("(route) POST /userpin")
+
+  const vals = [
+    req.amemberId,
+    'pin_id' in req.body ? sqlstring.escape(req.body.pin_id) : '0',
+  ]
+
+  pgClient.query(
+    'INSERT INTO user_pin(user_id, pin_id) VALUES($1, $2)',
+    vals
+  )
+
+  res.status(204).send()
+})
+
 // get all pins matching the keyword
 apiRoutes.post('/searchTest', async (req, res) => {
   console.log("(route) POST /searchTest")
