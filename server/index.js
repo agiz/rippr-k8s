@@ -615,7 +615,8 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
   const sql = `SELECT DATE(crawled_at) crawled_date, COUNT(DISTINCT profile_id) unique_profiles, COUNT(profile_id) cumulative_profiles,
     ROUND(AVG(position)::numeric, 2) "position",
-    MAX(saves) saves, MAX(repin_count) repin_count
+    MAX(saves) saves, MAX(repin_count) repin_count,
+    MIN(created_at) created_at, MAX(last_repin_date) last_repin_date
     FROM pin_crawl
     WHERE keyword = '${keyword}' AND
     pin_id = ${id}
