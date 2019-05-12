@@ -296,6 +296,20 @@ apiRoutes.get('/keywords', async (req, res) => {
   res.json(values.rows)
 })
 
+apiRoutes.get('/usersearch', async (req, res) => {
+  console.log("(route) GET /usersearch")
+
+  const values = await pgClient.query(`select * from user_search where id = '${req.amemberId}' order by created_at desc`)
+  res.json(values.rows)
+})
+
+apiRoutes.get('/userpin', async (req, res) => {
+  console.log("(route) GET /userpin")
+
+  const values = await pgClient.query(`select * from user_pin where user_id = '${req.amemberId}' order by created_at desc`)
+  res.json(values.rows)
+})
+
 apiRoutes.post('/userpin', async (req, res) => {
   console.log("(route) POST /userpin")
 
