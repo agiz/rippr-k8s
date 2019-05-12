@@ -363,9 +363,14 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const dateRange = 'dateRange' in req.body ? req.body.dateRange : { start: '1970-01-01', end: '2030-12-31' }
   const dateFrom = dateRange.start
   const dateTo = dateRange.end
+
   const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${sqlstring.escape(req.body.daysActive)}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true
+
+  const saveRange = 'saveRange' in req.body ? req.body.saveRange : { start: '0', end: '999999999' }
+  const saveFrom = saveRange.start
+  const saveTo = saveRange.end
 
   // console.log('cutoffId:', cutoffId)
   // console.log('term:', term)
@@ -504,6 +509,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
     WHERE
       p1.id = pc1.pin_id
       AND p1.id = da.pin_id
+      AND pc1.saves BETWEEN '${saveFrom}' AND '${saveTo}'
       AND ${cutoffId}
       AND ${cutoffValue}
       AND ${daysActive}
