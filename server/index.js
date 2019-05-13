@@ -372,6 +372,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const saveFrom = saveRange.start
   const saveTo = saveRange.end
 
+  const language = 'language' in req.body ? `p1.language IN (${req.body.language.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
+
   // console.log('cutoffId:', cutoffId)
   // console.log('term:', term)
   // console.log('dateRange:', dateRange)
@@ -501,6 +503,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       p1.mobile_link,
       p1.is_video,
       p1.is_shopify,
+      p1.language,
       da.days_active
     FROM
       p1,
@@ -514,6 +517,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       AND ${cutoffValue}
       AND ${daysActive}
       AND ${isShopify}
+      AND ${language}
       -- AND pc1.pin_crawl_id < 68994
       -- AND false
       -- AND p1.is_shopify = true
