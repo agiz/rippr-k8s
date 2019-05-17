@@ -316,9 +316,10 @@ apiRoutes.post('/userpin', async (req, res) => {
   const vals = [
     req.amemberId,
     'pin_id' in req.body ? req.body.pin_id : '0',
+    'comment' in req.body ? req.body.comment : '',
   ]
 
-  const sql = sqlstring.format('INSERT INTO user_pin(user_id, pin_id) VALUES(?, ?)', vals)
+  const sql = sqlstring.format('INSERT INTO user_pin(user_id, pin_id, comment) VALUES(?, ?, ?)', vals)
 
   console.log(vals)
   pgClient.query(sql)
