@@ -733,7 +733,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
 
     const values_site_social = await pgClient.query(sql_site_social)
     console.log(values_site_social)
-    const socialShare = values_site_social.rows.length === 1 ? values_site_social[0] : {}
+    const socialShare = values_site_social.rows.length === 1 ? values_site_social.rows[0] : {}
     promoterSocial2 = { ...promoterSocial2, ...socialShare }
     console.log('promoterSocial2:', promoterSocial2)
   } catch (err) {
