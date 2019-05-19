@@ -708,7 +708,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
   // a.match(/.*:\/\/([^\/]*)/)[1] // get url
   let promoterSocial2 = {}
   try {
-    const url = promoter.external_url.match(/.*:\/\/([^\/]*)/)[1]
+    const url = promoter.external_url.match(/.*:\/\/([^\/]*)/)[1].replace(/^www\./, '')
     console.log('promoter url:', url)
 
     const sql_site_meta = `
