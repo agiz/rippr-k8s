@@ -373,7 +373,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const saveFrom = saveRange.start
   const saveTo = saveRange.end
 
-  const language = 'language' in req.body && req.body.language.length > 0 ? `p1.language IN (${req.body.language.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
+  const language = 'language' in req.body && req.body.language.length > 0 ? `p1.language IN (${req.body.language.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'false'
 
   // console.log('cutoffId:', cutoffId)
   // console.log('term:', term)
