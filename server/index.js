@@ -705,11 +705,47 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const promoter_social_values = await pgClient.query(sql_promoter_social)
   const promoterSocial = promoter_social_values.rows.length === 1 ? promoter_social_values.rows[0] : {}
 
+  // a.match(/.*:\/\/([^\/]*)/)[1] // get url
+  let promoterSocial2 = {}
+  try {
+    const url = promoter.external_url.match(/.*:\/\/([^\/]*)/)[1]
+    console.log('promoter url:', url)
+
+    const sql_site_meta = `
+      select s.id, s.url, ssm.traffic_social, ssm.total_visits
+      from site s, sw_site_meta ssm
+      where true
+      and s.id = ssm.site_id
+      and s.url = '${url}' 
+    `
+
+    const values_site_meta = await pgClient.query(sql_site_meta)
+    console.log(values_site_meta)
+    promoterSocial2 = values_site_meta.rows.length === 1 ? values_site_meta.rows[0] : {}
+
+    const sql_site_social = `
+      select "share"
+      from sw_site_social
+      where true
+      and site_id = '${promoterSocial2.id}'
+      and platform = 'Pinterest'
+    `
+
+    const values_site_social = await pgClient.query(sql_site_social)
+    console.log(values_site_social)
+    const socialShare = values_site_social.rows.length === 1 ? values_site_social[0] : {}
+    promoterSocial2 = { ...promoterSocial2, ...socialShare }
+    console.log('promoterSocial2:', promoterSocial2)
+  } catch (err) {
+    console.error(err)
+  }
+
   res.json({
     pin: { ...pin, promotedPins, pinPosition, daysSeen },
     pinCrawl: values.rows,
     promoter,
     promoterSocial,
+    promoterSocial2,
   })
 })
 
