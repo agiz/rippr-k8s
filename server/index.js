@@ -694,19 +694,19 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const pin = pin_values.rows.length === 1 ? pin_values.rows[0] : {}
   const promoter = promoter_values.rows.length === 1 ? promoter_values.rows[0] : {}
 
-  const sql_promoter_social = `
-    SELECT total_visits, social_traffic, pinterest_traffic
-    FROM promoter_social
-    WHERE promoter_id = '${promoter_id}'
-    ORDER BY created_at DESC
-    LIMIT 1
-  `
-
-  const promoter_social_values = await pgClient.query(sql_promoter_social)
-  const promoterSocial = promoter_social_values.rows.length === 1 ? promoter_social_values.rows[0] : {}
+  // const sql_promoter_social = `
+  //   SELECT total_visits, social_traffic, pinterest_traffic
+  //   FROM promoter_social
+  //   WHERE promoter_id = '${promoter_id}'
+  //   ORDER BY created_at DESC
+  //   LIMIT 1
+  // `
+  //
+  // const promoter_social_values = await pgClient.query(sql_promoter_social)
+  // const promoterSocial = promoter_social_values.rows.length === 1 ? promoter_social_values.rows[0] : {}
 
   // a.match(/.*:\/\/([^\/]*)/)[1] // get url
-  let promoterSocial2 = {}
+  let promoterSocial = {}
   try {
     const url = promoter.external_url.match(/.*:\/\/([^\/]*)/)[1].replace(/^www\./, '')
     console.log('promoter url:', url)
@@ -720,22 +720,22 @@ apiRoutes.post('/pindetails', async (req, res) => {
     `
 
     const values_site_meta = await pgClient.query(sql_site_meta)
-    console.log(values_site_meta)
-    promoterSocial2 = values_site_meta.rows.length === 1 ? values_site_meta.rows[0] : {}
+    // console.log(values_site_meta)
+    promoterSocial = values_site_meta.rows.length === 1 ? values_site_meta.rows[0] : {}
 
     const sql_site_social = `
-      select "share"
+      select platform, "share"
       from sw_site_social
       where true
-      and site_id = '${promoterSocial2.id}'
+      and site_id = '${promoterSocial.id}'
       and platform = 'Pinterest'
     `
 
     const values_site_social = await pgClient.query(sql_site_social)
     console.log(values_site_social)
     const socialShare = values_site_social.rows.length === 1 ? values_site_social.rows[0] : {}
-    promoterSocial2 = { ...promoterSocial2, ...socialShare }
-    console.log('promoterSocial2:', promoterSocial2)
+    promoterSocial = { ...promoterSocial, ...socialShare }
+    // console.log('promoterSocial:', promoterSocial)
   } catch (err) {
     console.error(err)
   }
@@ -745,7 +745,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
     pinCrawl: values.rows,
     promoter,
     promoterSocial,
-    promoterSocial2,
+    // promoterSocial2,
   })
 })
 
