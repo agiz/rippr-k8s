@@ -629,7 +629,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
   console.log('id:', req.body.id, sqlstring.escape(req.body.id))
 
   // const keyword = 'keyword' in req.body ? sqlstring.escape(req.body.keyword) : ''
-  const keyword = 'keyword' in req.body ? req.body.keyword : ''
+  const keyword = 'keyword' in req.body ? req.body.keyword.replace("'", "''") : ''
 
   console.log('id:', id)
   console.log('keyword:', keyword)
