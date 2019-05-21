@@ -744,7 +744,7 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const sql_keywords = `
     select array_agg(distinct keyword) keywords
     from pin_crawl
-    where pin_id = '${id}'
+    where pin_id = ${id}
   `
   const values_keywords = await pgClient.query(sql_keywords)
   console.log('keywords', values_keywords.rows)
