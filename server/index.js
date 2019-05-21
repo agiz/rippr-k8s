@@ -740,8 +740,18 @@ apiRoutes.post('/pindetails', async (req, res) => {
     console.error(err)
   }
 
+  // get keywords
+  const sql_keywords = `
+    select array_agg(distinct keyword) keywords
+    from pin_crawl
+    where pin_id = '${id}'
+  `
+  const values_keywords = await pgClient.query(sql_keywords)
+  console.log('keywords', values_keywords.rows)
+  const keywords = values_keywords.rows.length === 1 ? values_keywords.rows[0].keywords : []
+
   res.json({
-    pin: { ...pin, promotedPins, pinPosition, daysSeen },
+    pin: { ...pin, promotedPins, pinPosition, daysSeen, keywords },
     pinCrawl: values.rows,
     promoter,
     promoterSocial,
