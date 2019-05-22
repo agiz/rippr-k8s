@@ -814,7 +814,7 @@ apiRoutes.post('/trend', async (req, res) => {
     return res.json([])
   }
 
-  const sql `select date(created_at) crawled_at, saves frequency from pin_saves where pin_id = ${id} order by 1 asc`
+  const sql = `select date(created_at) crawled_at, saves frequency from pin_saves where pin_id = ${id} order by 1 asc`
 
   const values = await pgClient.query(sql)
   res.json(values.rows)
