@@ -323,6 +323,8 @@ apiRoutes.get('/userpin', async (req, res) => {
   const pin_ids = new Set(values.rows.map(row => row.pin_id))
   const pin_ids_str = [...pin_ids].map(x => `'${x}'`).join(',')
 
+  console.log('pin_ids_str:', pin_ids_str)
+
   const sql_pin_crawl = `
     SELECT pin_id, MAX(saves) saves, MAX(repin_count) repin_count, ARRAY_AGG(DISTINCT keyword) keywords, MAX(crawled_at) crawled_at, COUNT(DISTINCT DATE(crawled_at)) days_active, MIN(created_at) created_at
     FROM pin_crawl
@@ -341,7 +343,7 @@ apiRoutes.get('/userpin', async (req, res) => {
 
   values.rows.forEach((row) => {
     out.push({
-     pin: { ...row, ...pin_crawl_dict[row.id] },
+     pin: { ...row, ...pin_crawl_dict[row.pin_id] },
     })
   })
 
