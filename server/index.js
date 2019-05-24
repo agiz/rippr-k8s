@@ -310,7 +310,9 @@ apiRoutes.get('/userpin', async (req, res) => {
     select pin.id pin_id, pin.promoter_id, pin.description,
     pin.ad_url, pin.image, pin.mobile_link, pin.is_video,
     pin.title, pin.is_shopify,
-    promoter.*,
+    promoter.id promoter_id, promoter.username promoter_username,
+    promoter.external_url promoter_external_url, promoter.description promoter_description,
+    promoter.image promoter_image, promoter.is_big_advertiser promoter_is_big_advertiser,
     user_pin.created_at saved_at
     from user_pin, pin, promoter
     where true
