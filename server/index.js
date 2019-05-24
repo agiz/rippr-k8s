@@ -306,8 +306,46 @@ apiRoutes.get('/usersearch', async (req, res) => {
 apiRoutes.get('/userpin', async (req, res) => {
   console.log("(route) GET /userpin")
 
-  const values = await pgClient.query(`select * from user_pin where user_id = '${req.amemberId}' order by created_at desc`)
-  res.json(values.rows)
+  const sql = `
+    select pin.id pin_id, pin.promoter_id, pin.description,
+    pin.ad_url, pin.image, pin.mobile_link, pin.is_video,
+    pin.title, pin.is_shopify,
+    promoter.*,
+    user_pin.created_at saved_at
+    from user_pin, pin, promoter
+    where true
+    and user_pin.pin_id = pin.id
+    and pin.promoter_id = promoter.id
+    and user_pin.user_id = ${req.amemberId}
+  `
+  const values = await pgClient.query(sql)
+
+  const pin_ids = new Set(values.rows.map(row => row.pin_id))
+  const pin_ids_str = [...pin_ids].map(x => `'${x}'`).join(',')
+
+  const sql_pin_crawl = `
+    SELECT pin_id, MAX(saves) saves, MAX(repin_count) repin_count, ARRAY_AGG(DISTINCT keyword) keywords, MAX(crawled_at) crawled_at, COUNT(DISTINCT DATE(crawled_at)) days_active, MIN(created_at) created_at
+    FROM pin_crawl
+    WHERE pin_id IN (${pin_ids_str})
+    GROUP BY 1
+  `
+  const values_pin_crawl = await pgClient.query(sql_pin_crawl)
+
+  const pin_crawl_dict = {}
+
+  values_pin_crawl.rows.forEach((row) => {
+    pin_crawl_dict[row.pin_id] = row
+  })
+
+  const out = []
+
+  values.rows.forEach((row) => {
+    out.push({
+     pin: { ...row, ...pin_crawl_dict[row.id] },
+    })
+  })
+
+  res.json(out)
 })
 
 apiRoutes.post('/userpin', async (req, res) => {
