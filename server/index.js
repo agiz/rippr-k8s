@@ -313,6 +313,7 @@ apiRoutes.get('/userpin', async (req, res) => {
     promoter.id promoter_id, promoter.username promoter_username,
     promoter.external_url promoter_external_url, promoter.description promoter_description,
     promoter.image promoter_image, promoter.is_big_advertiser promoter_is_big_advertiser,
+    promoter.location promoter_location,
     user_pin.created_at saved_at
     from user_pin, pin, promoter
     where true
@@ -346,6 +347,14 @@ apiRoutes.get('/userpin', async (req, res) => {
   values.rows.forEach((row) => {
     out.push({
      pin: { ...row, ...pin_crawl_dict[row.pin_id] },
+     promoter: {
+       description: row.promoter_description,
+       external_url: row.promoter_external_url,
+       id: row.promoter_id,
+       image: row.promoter_image,
+       location: row.promoter_location,
+       username: row.promoter_username,
+     },
     })
   })
 
