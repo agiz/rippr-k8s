@@ -346,16 +346,15 @@ apiRoutes.get('/userpin', async (req, res) => {
 
   values.rows.forEach((row) => {
     out.push({
-     pin: { ...row, ...pin_crawl_dict[row.pin_id],
-       promoter: {
-         description: row.promoter_description,
-         external_url: row.promoter_external_url,
-         id: row.promoter_id,
-         image: row.promoter_image,
-         location: row.promoter_location,
-         username: row.promoter_username,
-       },
-      }
+     ...row, ...pin_crawl_dict[row.pin_id],
+     promoter: {
+       description: row.promoter_description,
+       external_url: row.promoter_external_url,
+       id: row.promoter_id,
+       image: row.promoter_image,
+       location: row.promoter_location,
+       username: row.promoter_username,
+     },
     })
   })
 
