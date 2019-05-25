@@ -921,46 +921,109 @@ apiRoutes.get('/top', async (req, res) => {
   })
 
   const sql_3 = `
-    SELECT DISTINCT pin_crawl.pin_id, pin_crawl.profile_id, pin_crawl.saves, pin_crawl.repin_count, pin_crawl.created_at, pin_crawl.last_repin_date, pin_crawl.keyword, pin_crawl.position, pin_crawl.user_agent, pin_crawl.crawled_at, pin.*
-    FROM (
-      SELECT pin_crawl.pin_id, MIN(crawled_at) crawled_at, MIN(keyword) keyword, MIN(profile_id) profile_id, MIN(position) pos
-      FROM pin_crawl, pin
+    WITH
+      t1 AS (
+      SELECT
+        *
+      FROM (
+        SELECT
+          pr.id,
+          pr.username,
+          pr.location,
+          pr.external_url,
+          pr.description,
+          pr.image,
+          pr.is_big_advertiser,
+          prs.total_visits,
+          prs.social_traffic,
+          prs.pinterest_traffic,
+          ROW_NUMBER() OVER (PARTITION BY prs.promoter_id ORDER BY prs.created_at DESC) row_index
+        FROM
+          promoter pr
+        LEFT OUTER JOIN
+          promoter_social prs
+        ON
+          (pr.id = prs.promoter_id)
+        ORDER BY
+          pr.id ) ta
       WHERE
-      pin.is_shopify = true AND
-      pin_crawl.pin_id = pin.id
-      GROUP BY 1
-      ORDER BY 2 DESC
-      LIMIT 50
-    ) t1, pin, pin_crawl
-    WHERE t1.pin_id = pin.id
-    AND t1.pin_id = pin_crawl.pin_id
-    AND t1.crawled_at = pin_crawl.crawled_at
-    AND t1.keyword = pin_crawl.keyword
-    AND t1.profile_id = pin_crawl.profile_id
-    AND t1.pos = pin_crawl.position
-    ORDER BY pin_crawl.crawled_at DESC
+        (ta.row_index != 2
+          OR ta.row_index = 2
+          AND total_visits IS NULL) ),
+      t2 AS (
+      SELECT
+        promoter_id,
+        MAX(CASE
+            WHEN is_shopify = TRUE THEN 1
+          ELSE
+          0
+        END
+          ) is_shopify
+      FROM
+        pin
+      GROUP BY
+        1)
+    SELECT
+      o1.id,
+      MAX(username) username,
+      MAX(o1.location) "location",
+      MAX(external_url) external_url,
+      MAX(description) description,
+      MAX(image) image,
+      bool_and(is_big_advertiser) is_big_advertiser,
+      MAX(total_visits) total_visits,
+      MAX(social_traffic) social_traffic,
+      MAX(pinterest_traffic) pinterest_traffic,
+      MAX(followers) followers,
+      MAX(monthly_views) monthly_views,
+      MIN(crawled_at) min_crawled_at,
+      MAX(crawled_at) max_crawled_at,
+      o1.id promoter_id
+    FROM (
+      SELECT
+        t1.*,
+        CASE
+          WHEN t2.is_shopify = 1 THEN TRUE
+        ELSE
+        FALSE
+      END
+        is_shopify
+      FROM
+        t1
+      LEFT OUTER JOIN
+        t2
+      ON
+        (t1.id = t2.promoter_id) ) o1,
+      promoter_crawl
+    WHERE
+      TRUE
+      AND o1.id = promoter_crawl.promoter_id
+      AND o1.is_shopify = TRUE
+    GROUP BY
+      1
+    ORDER BY
+      13 DESC
+    LIMIT
+      10
   `
-
   const values_3 = await pgClient.query(sql_3)
-
   const promoter_ids_2 = new Set(values_3.rows.map(row => row.promoter_id))
   const promoter_ids_str_2 = [...promoter_ids_2].map(x => `'${x}'`).join(',')
 
   const sql_promoter = `
-    SELECT * FROM
-    (
-      SELECT promoter_id, MAX(followers) followers, MAX(monthly_views) monthly_views, MIN(crawled_at) min_crawled_at, MAX(crawled_at) max_crawled_at
-      FROM promoter_crawl
-      WHERE promoter_id IN (${promoter_ids_str_2})
-      GROUP BY 1
-    ) t1, promoter
-    WHERE
-    promoter.id IN (${promoter_ids_str_2}) AND
-    t1.promoter_id = promoter.id
+    select * from (
+    select *,
+    row_number() over (partition by pin.promoter_id order by crawled_at desc) row_index
+    from pin, pin_crawl
+    where true
+    and pin.id = pin_crawl.pin_id
+    --and promoter_id IN ('795307752854425069', '809451870434123777')
+    and promoter_id IN (${promoter_ids_str_2})
+    order by promoter_id, crawled_at desc
+    ) i1
+    where i1.row_index = 1
   `
-
   const values_sql_promoter = await pgClient.query(sql_promoter)
-
   const promoter_dict = {}
 
   values_sql_promoter.rows.forEach((row) => {
