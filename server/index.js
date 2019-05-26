@@ -493,7 +493,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
           ON pin_crawl.profile_id = profile.id
       WHERE
         ${selectedCountries}
-        AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
+        --AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
+        AND pin_crawl.crawled_at >= '${dateFrom}'
+        AND pin.crawl.crawled_at <= '${dateTo}'
       GROUP BY
         1
     )
@@ -523,7 +525,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
               ON pin_crawl.profile_id = profile.id
           WHERE
             ${selectedCountries}
-            AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
+            AND pin_crawl.crawled_at >= '${dateFrom}'
+            AND pin.crawl.crawled_at <= '${dateTo}'
           GROUP BY
             1,
             2
@@ -564,7 +567,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
     WHERE
       p1.id = pc1.pin_id
       AND p1.id = da.pin_id
-      AND pc1.saves BETWEEN '${saveFrom}' AND '${saveTo}'
+      -- AND pc1.saves BETWEEN '${saveFrom}' AND '${saveTo}'
+      AND pc1.saves >= '${saveFrom}'
+      AND pc1.saves <= '${saveTo}'
       AND ${cutoffId}
       AND ${cutoffValue}
       AND ${daysActive}
