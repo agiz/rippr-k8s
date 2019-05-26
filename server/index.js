@@ -495,7 +495,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
         ${selectedCountries}
         --AND pin_crawl.crawled_at BETWEEN '${dateFrom}' AND '${dateTo}'
         AND pin_crawl.crawled_at >= '${dateFrom}'
-        AND pin.crawl.crawled_at <= '${dateTo}'
+        AND pin_crawl.crawled_at <= '${dateTo}'
       GROUP BY
         1
     )
@@ -526,7 +526,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
           WHERE
             ${selectedCountries}
             AND pin_crawl.crawled_at >= '${dateFrom}'
-            AND pin.crawl.crawled_at <= '${dateTo}'
+            AND pin_crawl.crawled_at <= '${dateTo}'
           GROUP BY
             1,
             2
