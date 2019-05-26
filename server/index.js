@@ -585,7 +585,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
     FETCH first 10 ROWS ONLY;
   `
 
-  // console.log(sql_pin_crawl)
+  console.log(sql_pin_crawl)
 
   const values_pin_crawl = await pgClient.query(sql_pin_crawl)
 
