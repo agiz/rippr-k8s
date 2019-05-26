@@ -424,7 +424,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const saveFrom = saveRange.start
   const saveTo = saveRange.end
 
-  const language = 'language' in req.body && req.body.language.length > 0 ? `p1.language IN (${req.body.language.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'false'
+  // const language = 'language' in req.body && req.body.language.length > 0 ? `p1.language IN (${req.body.language.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'false'
+  const language = 'language' in req.body && req.body.language.length > 0 ? `language IN (${req.body.language.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'false'
 
   // console.log('cutoffId:', cutoffId)
   // console.log('term:', term)
@@ -462,6 +463,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
         *
       FROM
         pin
+      WHERE true
+      AND ${language}
     )
     ,
     pc1 AS
@@ -574,7 +577,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       AND ${cutoffValue}
       AND ${daysActive}
       AND ${isShopify}
-      AND ${language}
+      -- AND ${language}
       -- AND pc1.pin_crawl_id < 68994
       -- AND false
       -- AND p1.is_shopify = true
