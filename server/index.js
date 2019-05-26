@@ -303,6 +303,16 @@ apiRoutes.get('/usersearch', async (req, res) => {
   res.json(values.rows)
 })
 
+apiRoutes.get('/userpin/ids', async (req, res) => {
+  console.log("(route) GET /userpin/ids")
+
+  const sql = sqlstring.format('select pin_id from user_pin where user_id = ?', [req.amemberId,])
+
+  const values = await pgClient.query(sql)
+
+  res.json(values.rows)
+}
+
 apiRoutes.get('/userpin', async (req, res) => {
   console.log("(route) GET /userpin")
 
