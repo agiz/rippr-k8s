@@ -310,7 +310,7 @@ apiRoutes.get('/userpin/ids', async (req, res) => {
 
   const values = await pgClient.query(sql)
 
-  res.json(values.rows)
+  res.json(values.rows.map(x => x.pin_id))
 })
 
 apiRoutes.get('/userpin', async (req, res) => {
