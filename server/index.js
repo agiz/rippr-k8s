@@ -311,7 +311,7 @@ apiRoutes.get('/userpin/ids', async (req, res) => {
   const values = await pgClient.query(sql)
 
   res.json(values.rows)
-}
+})
 
 apiRoutes.get('/userpin', async (req, res) => {
   console.log("(route) GET /userpin")
