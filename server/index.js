@@ -527,9 +527,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
           GROUP BY
             1,
             2
-          ORDER BY
-            1 DESC,
-            2
+          --ORDER BY
+          --  1 DESC,
+          --  2
         )
         x
       GROUP BY
