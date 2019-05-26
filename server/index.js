@@ -375,12 +375,24 @@ apiRoutes.post('/userpin', async (req, res) => {
   console.log(vals)
   pgClient.query(sql)
 
-  // pgClient.query(
-  //   'INSERT INTO user_pin(user_id, pin_id) VALUES($1, $2)',
-  //   vals
-  // )
+  res.status(204).send()
+})
 
-  // insert into user_pin (user_id, pin_id) values (1, '94716398399846263')
+apiRoutes.delete('/userpin', async (req, res) => {
+  console.log("(route) DELETE /userpin")
+
+  const vals = [
+    req.amemberId,
+    'pin_id' in req.body ? req.body.pin_id : '0',
+  ]
+
+  console.log(vals)
+
+  if (vals[1] !== '0') {
+    const sql = sqlstring.format('DELETE FROM user_pin WHERE user_id = ? AND pin_id = ?', vals)
+
+    pgClient.query(sql)
+  }
 
   res.status(204).send()
 })
