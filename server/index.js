@@ -334,7 +334,7 @@ apiRoutes.get('/userpin', async (req, res) => {
   const values = await pgClient.query(sql)
 
   if (values.rows.length === 0) {
-    return res.json(out)
+    return res.json([])
   }
 
   const pin_ids = new Set(values.rows.map(row => row.pin_id))
