@@ -738,8 +738,15 @@ apiRoutes.post('/pindetails', async (req, res) => {
   const sql_pin = `SELECT * FROM pin WHERE id = ${id}`
   const pin_values = await pgClient.query(sql_pin)
 
+  console.log('pin_values.rows.length', pin_values.rows.length)
+
+  if (pin_values.rows.length === 0) {
+    return res.json({})
+  }
+
   const promoter_id = pin_values.rows[0].promoter_id
   console.log('promoter_id:', promoter_id)
+
 
   const sql_promoter = `
     SELECT promoter.id, promoter.username, promoter.location, promoter.external_url, promoter.description, promoter.image,
