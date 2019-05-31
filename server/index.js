@@ -1077,7 +1077,7 @@ apiRoutes.get('/top', async (req, res) => {
   for (const row of values_3.rows) {
     if (!newShopifyDuplicate.has(row.promoter_id)) {
       newShopifyDuplicate.add(row.promoter_id)
-      newShopify.push({ promoter: row, pin: promoter_dict[row.promoter_id] })
+      newShopify.push({ promoter: row, pin: { ...promoter_dict[row.promoter_id], id: row.pin_id } })
     }
   }
 
