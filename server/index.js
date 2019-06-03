@@ -1089,7 +1089,7 @@ apiRoutes.get('/top', async (req, res) => {
         pin_id,
         MAX(saves) saves,
         MAX(repin_count) repin_count,
-        ARRAY_AGG(keyword) keyword
+        ARRAY_AGG(DISTINCT keyword) keyword
       FROM
         pin_crawl
       GROUP BY
