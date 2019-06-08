@@ -488,7 +488,7 @@ apiRoutes.get('/followpromoter', async (req, res) => {
 
   const values = await pgClient.query(sql)
 
-  res.json(values.rows.length > 0 ? values.rows.map(x => x.promoter_id) : [])
+  res.json(values.rows.length > 0 ? values.rows : [])
 })
 
 apiRoutes.get('/followpromoter/ids', async (req, res) => {
