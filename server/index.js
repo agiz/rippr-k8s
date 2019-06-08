@@ -411,6 +411,131 @@ apiRoutes.delete('/userpin', async (req, res) => {
   res.status(204).send()
 })
 
+apiRoutes.post('/promoter', async (req, res) => {
+  console.log("(route) POST /promoter")
+
+  const id = 'id' in req.body ? sqlstring.escape(req.body.id) : ''
+  const sql = `select * from promoter where id = ${id}`
+  const promoter_values = await pgClient.query(sql)
+
+  if (promoter_values.rows.length !== 1) {
+    return res.json({})
+  }
+
+  const promoter = promoter_values.rows.length === 1 ? promoter_values.rows[0] : {}
+
+  let promoterSocial = {}
+  try {
+    const url = promoter.external_url.match(/.*:\/\/([^\/]*)/)[1].replace(/^www\./, '')
+    console.log('promoter url:', url)
+
+    const sql_site_meta = `
+      select s.id, s.url, ssm.traffic_social, ssm.total_visits
+      from site s, sw_site_meta ssm
+      where true
+      and s.id = ssm.site_id
+      and s.url = '${url}' 
+    `
+
+    const values_site_meta = await pgClient.query(sql_site_meta)
+    // console.log(values_site_meta)
+    promoterSocial = values_site_meta.rows.length === 1 ? values_site_meta.rows[0] : {}
+
+    const sql_site_social = `
+      select platform, "share"
+      from sw_site_social
+      where true
+      and site_id = '${promoterSocial.id}'
+      and platform = 'Pinterest'
+    `
+
+    const values_site_social = await pgClient.query(sql_site_social)
+    console.log(values_site_social)
+    const socialShare = values_site_social.rows.length === 1 ? values_site_social.rows[0] : {}
+    promoterSocial = { ...promoterSocial, ...socialShare }
+    // console.log('promoterSocial:', promoterSocial)
+  } catch (err) {
+    console.error(err)
+  }
+
+  const promoter_trend_sql = `select distinct date(crawled_at) crawled_at, followers from promoter_crawl where promoter_id = ${id}`
+  const promoter_trend_values = await pgClient.query(promoter_trend_sql)
+  const promoterTrend = promoter_trend_values.rows.length > 0 ? promoter_trend_values.rows : []
+
+  console.log('promoter:', promoter)
+  console.log('promoterSocial:', promoterSocial)
+  console.log('promoterTrend:', promoterTrend)
+
+  res.json({
+    promoter,
+    promoterSocial,
+    promoterTrend,
+  })
+})
+
+apiRoutes.get('/followpromoter', async (req, res) => {
+  console.log("(route) GET /followpromoter")
+
+  const sql = sqlstring.format(`
+    select distinct pr.*, fp.created_at followed_at,
+    FIRST_VALUE(pc.followers) OVER (PARTITION BY pc.promoter_id ORDER BY pc.crawled_at desc) followers
+    from follow_promoter fp, promoter pr, promoter_crawl pc
+    where true
+    and fp.user_id = ?
+    and pr.id = pc.promoter_id
+    and fp.promoter_id = pr.id
+  `, [req.amemberId,])
+
+  const values = await pgClient.query(sql)
+
+  res.json(values.rows.length > 0 ? values.rows.map(x => x.promoter_id) : [])
+})
+
+apiRoutes.get('/followpromoter/ids', async (req, res) => {
+  console.log("(route) GET /followpromoter/ids")
+
+  const sql = sqlstring.format('select promoter_id from follow_promoter where user_id = ?', [req.amemberId,])
+
+  const values = await pgClient.query(sql)
+
+  res.json(values.rows.length > 0 ? values.rows.map(x => x.promoter_id) : [])
+})
+
+apiRoutes.post('/followpromoter', async (req, res) => {
+  console.log("(route) POST /followpromoter")
+
+  const vals = [
+    req.amemberId,
+    'promoter_id' in req.body ? req.body.promoter_id : '0',
+  ]
+
+  const sql = sqlstring.format('INSERT INTO follow_promoter(user_id, promoter_id) VALUES(?, ?)', vals)
+
+  console.log(vals)
+  pgClient.query(sql)
+
+  res.status(204).send()
+})
+
+apiRoutes.delete('/followpromoter', async (req, res) => {
+  console.log("(route) DELETE /followpromoter")
+
+  const vals = [
+    req.amemberId,
+    'promoter_id' in req.body ? req.body.promoter_id : '0',
+  ]
+
+  console.log(vals)
+
+  if (vals[1] !== '0') {
+    const sql = sqlstring.format('DELETE FROM follow_promoter WHERE user_id = ? AND promoter_id = ?', vals)
+
+    pgClient.query(sql)
+  }
+
+  res.status(204).send()
+})
+
 // get all pins matching the keyword
 apiRoutes.post('/searchTest', async (req, res) => {
   console.log("(route) POST /searchTest")
@@ -1158,28 +1283,28 @@ apiRoutes.post('/pin', async (req, res) => {
   res.json(values.rows)
 })
 
-// get promoter(s) by id (by an array of ids)
-apiRoutes.post('/promoter', async (req, res) => {
-  console.log("(route) POST /promoter")
-
-  const ids = req.body.map(x => `${sqlstring.escape(x)}`).join(',')
-  const sql = `SELECT id, username, location, external_url, description, image FROM promoter WHERE id IN (${ids});`
-
-  const values = await pgClient.query(sql)
-  res.json(values.rows)
-})
-
-// get promoter details by id (by an array of ids)
-// get latest details for the current month of requested provider
-apiRoutes.post('/promoterdetails', async (req, res) => {
-  console.log("(route) POST /promoterdetails")
-
-  const ids = req.body.map(x => `${sqlstring.escape(x)}`).join(',')
-  const sql = `SELECT DISTINCT ON (promoter_id) promoter_id, followers, monthly_views FROM promoter_crawl WHERE promoter_id IN (${ids}) ORDER BY promoter_id, crawled_at DESC;`
-
-  const values = await pgClient.query(sql)
-  res.json(values.rows)
-})
+// // get promoter(s) by id (by an array of ids)
+// apiRoutes.post('/promoter', async (req, res) => {
+//   console.log("(route) POST /promoter")
+//
+//   const ids = req.body.map(x => `${sqlstring.escape(x)}`).join(',')
+//   const sql = `SELECT id, username, location, external_url, description, image FROM promoter WHERE id IN (${ids});`
+//
+//   const values = await pgClient.query(sql)
+//   res.json(values.rows)
+// })
+//
+// // get promoter details by id (by an array of ids)
+// // get latest details for the current month of requested provider
+// apiRoutes.post('/promoterdetails', async (req, res) => {
+//   console.log("(route) POST /promoterdetails")
+//
+//   const ids = req.body.map(x => `${sqlstring.escape(x)}`).join(',')
+//   const sql = `SELECT DISTINCT ON (promoter_id) promoter_id, followers, monthly_views FROM promoter_crawl WHERE promoter_id IN (${ids}) ORDER BY promoter_id, crawled_at DESC;`
+//
+//   const values = await pgClient.query(sql)
+//   res.json(values.rows)
+// })
 
 app.use('/v1', apiRoutes)
 
