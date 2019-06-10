@@ -580,27 +580,27 @@ apiRoutes.get('/keyword', async (req, res) => {
   const arr = []
   for (const row of values.rows) {
     arr.push({
-      ad_url: row.ad_url,
-      created_at: row.created_at,
+      ad_url: row['ad_url'],
+      created_at: row['created_at'],
       description: row.description,
       image: row.image,
-      is_shopify: row.is_shopify,
-      highlighted_keyword: row.highlighted_keyword,
+      'is_shopify': row['is_shopify'],
+      'highlighted_keyword': row['highlighted_keyword'],
       language: row.language,
-      last_repin_date: row.last_repin_date,
-      pin_id: row.pin_id,
-      crawled_at: row.crawled_at,
+      'last_repin_date': row['last_repin_date'],
+      'pin_id': row['pin_id'],
+      'crawled_at': row['crawled_at'],
       saves: row.saves,
-      followed_at: row.followed_at,
-      promoter_id: row.promoter_id,
+      'followed_at': row['followed_at'],
+      'promoter_id': row['promoter_id'],
       title: row.title,
       promoter: {
-        description: row.promoter_description,
-        external_url: row.promoter_url,
-        id: row.promoter_id,
-        image: row.promoter_image,
-        location: row.promoter_location,
-        username: row.promoter_username,
+        description: row['promoter_description'],
+        'external_url': row['promoter_url'],
+        id: row['promoter_id'],
+        image: row['promoter_image'],
+        location: row['promoter_location'],
+        username: row['promoter_username'],
       }
     })
   }
