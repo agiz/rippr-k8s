@@ -536,6 +536,125 @@ apiRoutes.delete('/followpromoter', async (req, res) => {
   res.status(204).send()
 })
 
+apiRoutes.get('/keyword', async (req, res) => {
+  console.log("(route) GET /keyword")
+  // 24 latest pins with this keyword
+
+  const sql = sqlstring.format(`
+    -select distinct pc.pin_id,
+    -FIRST_VALUE(pc.crawled_at) OVER (PARTITION BY pc.pin_id ORDER BY pc.crawled_at asc) crawled_at,
+    -FIRST_VALUE(pc.saves) OVER (PARTITION BY pc.pin_id ORDER BY pc.crawled_at asc) saves,
+    -FIRST_VALUE(pc.created_at) OVER (PARTITION BY pc.pin_id ORDER BY pc.crawled_at asc) created_at,
+    -FIRST_VALUE(pc.last_repin_date) OVER (PARTITION BY pc.pin_id ORDER BY pc.crawled_at asc) last_repin_date,
+    1fk.created_at followed_at,
+    1fk.keyword highlighted_keyword,
+    2pin.promoter_id,
+    2pin.description,
+    2pin.ad_url,
+    3pin.title,
+    3pin.image,
+    3pin.is_shopify,
+    pin.language,
+    pr.username promoter_username,
+    pr.description promoter_description,
+    pr.image promoter_image,
+    pr.external_url promoter_url,
+    pr.location promoter_location
+    from follow_keyword fk, pin_crawl pc, pin, promoter pr
+    where true
+    and pc.keyword = fk.keyword
+    and pc.pin_id = pin.id
+    and pr.id = pin.promoter_id
+    and user_id = ?
+    and pc.crawled_at >= fk.created_at
+    order by 2 desc
+    limit 24
+  `, [req.amemberId,])
+
+  const values = await pgClient.query(sql)
+
+  if (values.rows.length === 0) {
+    return res.json([])
+  }
+
+  const arr = []
+  for (const row of values.rows) {
+    arr.push({
+      ad_url: row.ad_url,
+      created_at: row.created_at,
+      description: row.description,
+      image: row.image,
+      is_shopify: row.is_shopify,
+      highlighted_keyword: row.highlighted_keyword,
+      language: row.language,
+      last_repin_date: row.last_repin_date,
+      pin_id: row.pin_id,
+      crawled_at: row.crawled_at,
+      saves: row.saves,
+      followed_at: row.followed_at,
+      promoter_id: row.promoter_id,
+      title: row.title,
+      promoter: {
+        description: row.promoter_description,
+        external_url: row.promoter_url,
+        id: row.promoter_id,
+        image: row.promoter_image,
+        location: row.promoter_location,
+        username: row.promoter_username,
+      }
+    })
+  }
+
+  res.json(arr)
+})
+
+apiRoutes.get('/keyword/all', async (req, res) => {
+  console.log("(route) GET /keyword/all")
+
+  const sql = sqlstring.format('select keyword from follow_keyword where user_id = ?', [req.amemberId,])
+
+  const values = await pgClient.query(sql)
+
+  res.json(values.rows.length > 0 ? values.rows.map(x => x.keyword) : [])
+})
+
+apiRoutes.post('/keyword', async (req, res) => {
+  console.log("(route) POST /keyword")
+
+  const vals = [
+    req.amemberId,
+    'keyword' in req.body ? req.body.keyword : '',
+  ]
+
+  console.log(vals)
+
+  if (vals[1] !== '') {
+    const sql = sqlstring.format('INSERT INTO follow_keyword(user_id, keyword) VALUES(?, ?)', vals)
+    pgClient.query(sql)
+  }
+
+  res.status(204).send()
+})
+
+apiRoutes.delete('/keyword', async (req, res) => {
+  console.log("(route) DELETE /keyword")
+
+  const vals = [
+    req.amemberId,
+    'keyword' in req.body ? req.body.keyword : '',
+  ]
+
+  console.log(vals)
+
+  if (vals[1] !== '') {
+    const sql = sqlstring.format('DELETE FROM follow_keyword WHERE user_id = ? AND keyword = ?', vals)
+
+    pgClient.query(sql)
+  }
+
+  res.status(204).send()
+})
+
 // get all pins matching the keyword
 apiRoutes.post('/searchTest', async (req, res) => {
   console.log("(route) POST /searchTest")
