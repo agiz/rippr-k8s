@@ -738,15 +738,26 @@ apiRoutes.post('/searchTest', async (req, res) => {
       --  pin
       --WHERE true
       --AND ${language}
+      --
+      --SELECT
+      --  DISTINCT pin.*,
+      --  FIRST_VALUE(pd.shop) OVER (PARTITION BY pd.domain ORDER BY pd.shop ASC) shop
+      --FROM
+      --  pin,
+      --  pin_domain pd
+      --WHERE
+      --  TRUE
+      --  AND pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
+      --
       SELECT
         DISTINCT pin.*,
         FIRST_VALUE(pd.shop) OVER (PARTITION BY pd.domain ORDER BY pd.shop ASC) shop
       FROM
-        pin,
+        pin
+      LEFT OUTER JOIN
         pin_domain pd
-      WHERE
-        TRUE
-        AND pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
+      ON
+        pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
     )
     ,
     pc1 AS
