@@ -689,6 +689,9 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${sqlstring.escape(req.body.daysActive)}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true
+  // 1 - shopify
+  // 2 - woocommerce
+  // 3 - clickfunnels
 
   const saveRange = 'saveRange' in req.body ? req.body.saveRange : { start: '0', end: '999999999' }
   const saveFrom = saveRange.start
@@ -708,33 +711,42 @@ apiRoutes.post('/searchTest', async (req, res) => {
   // console.log('isShopify:', isShopify)
   // console.log('selectedCountries:', selectedCountries)
 
-  const vals = [
-    req.amemberId,
-    term,
-    sortBy,
-    'id' in req.body ? sqlstring.escape(req.body.id) : 0,
-    'cutoffValue' in req.body ? sqlstring.escape(req.body.cutoffValue) + '' : '0',
-    new Date(dateFrom).toISOString().split('T').join(' ').split('.')[0] + '+00',
-    new Date(dateTo).toISOString().split('T').join(' ').split('.')[0] + '+00',
-    'daysActive' in req.body ? sqlstring.escape(req.body.daysActive) : 0,
-    'isShopify' in req.body ? sqlstring.escape(req.body.isShopify) : 'false',
-    'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `${x}`).join(',')}}` : '{}',
-  ]
-
-  pgClient.query(
-    'INSERT INTO user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-    vals
-  )
+  // const vals = [
+  //   req.amemberId,
+  //   term,
+  //   sortBy,
+  //   'id' in req.body ? sqlstring.escape(req.body.id) : 0,
+  //   'cutoffValue' in req.body ? sqlstring.escape(req.body.cutoffValue) + '' : '0',
+  //   new Date(dateFrom).toISOString().split('T').join(' ').split('.')[0] + '+00',
+  //   new Date(dateTo).toISOString().split('T').join(' ').split('.')[0] + '+00',
+  //   'daysActive' in req.body ? sqlstring.escape(req.body.daysActive) : 0,
+  //   'isShopify' in req.body ? sqlstring.escape(req.body.isShopify) : 'false',
+  //   'selectedCountries' in req.body ? `{${req.body.selectedCountries.map(x => `${x}`).join(',')}}` : '{}',
+  // ]
+  //
+  // pgClient.query(
+  //   'INSERT INTO user_search(id, term, sort_by, cutoff_id, cutoff_value, date_from, date_to, days_active, is_shopify, country) VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+  //   vals
+  // )
 
   const sql_pin_crawl = `
     WITH p1 AS
     (
+      --SELECT
+      --  *
+      --FROM
+      --  pin
+      --WHERE true
+      --AND ${language}
       SELECT
-        *
+        DISTINCT pin.*,
+        FIRST_VALUE(pd.shop) OVER (PARTITION BY pd.domain ORDER BY pd.shop ASC) shop
       FROM
-        pin
-      WHERE true
-      AND ${language}
+        pin,
+        pin_domain pd
+      WHERE
+        TRUE
+        AND pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
     )
     ,
     pc1 AS
@@ -832,7 +844,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
       p1.is_video,
       p1.is_shopify,
       p1.language,
-      da.days_active
+      da.days_active,
+      p1.shop
     FROM
       p1,
       pc1,
