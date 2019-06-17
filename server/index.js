@@ -458,7 +458,7 @@ apiRoutes.post('/promoter', async (req, res) => {
     console.error(err)
   }
 
-  const promoter_trend_sql = `select distinct date(crawled_at) crawled_at, followers from promoter_crawl where promoter_id = ${id}`
+  const promoter_trend_sql = `select distinct date(crawled_at) crawled_at, followers from promoter_crawl where promoter_id = ${id} ORDER BY crawled_at DESC LIMIT 30`
   const promoter_trend_values = await pgClient.query(promoter_trend_sql)
   const promoterTrend = promoter_trend_values.rows.length > 0 ? promoter_trend_values.rows : []
 
