@@ -706,7 +706,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${sqlstring.escape(req.body.daysActive)}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true
-  const shop = 'shop' in req.body ? `AND shop IN (${req.body.shop.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'AND true'
+  const shop = 'shop' in req.body && req.body.shop.length > 0 ? `AND shop IN (${req.body.shop.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'AND true'
   // 1 - shopify
   // 2 - woocommerce
   // 3 - clickfunnels
