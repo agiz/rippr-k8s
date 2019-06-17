@@ -488,7 +488,19 @@ apiRoutes.get('/followpromoter', async (req, res) => {
 
   const values = await pgClient.query(sql)
 
-  res.json(values.rows.length > 0 ? values.rows : [])
+  const out = []
+
+  for (row of values.rows) {
+    const s = `SELECT image FROM pin WHERE promoter_id = '${row.id}' LIMIT 6`
+    const v = await pgClient.query(s)
+
+    out.push({
+      ...row,
+      cover: v.rows.map(x => x.image),
+    })
+  }
+
+  res.json(out)
 })
 
 apiRoutes.get('/followpromoter/ids', async (req, res) => {
