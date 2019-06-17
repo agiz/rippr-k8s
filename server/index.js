@@ -706,9 +706,11 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${sqlstring.escape(req.body.daysActive)}` : 'true'
   const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true
+  const shop = 'shop' in req.body ? `AND shop IN (${req.body.shop.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
   // 1 - shopify
   // 2 - woocommerce
   // 3 - clickfunnels
+  // 4 - advertorials
 
   const saveRange = 'saveRange' in req.body ? req.body.saveRange : { start: '0', end: '999999999' }
   const saveFrom = saveRange.start
@@ -775,6 +777,8 @@ apiRoutes.post('/searchTest', async (req, res) => {
         pin_domain pd
       ON
         pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
+      WHERE true
+        ${shop}
     )
     ,
     pc1 AS
