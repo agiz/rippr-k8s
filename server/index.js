@@ -462,6 +462,10 @@ apiRoutes.post('/promoter', async (req, res) => {
   const promoter_trend_values = await pgClient.query(promoter_trend_sql)
   const promoterTrend = promoter_trend_values.rows.length > 0 ? promoter_trend_values.rows : []
 
+  const cover_sql = `SELECT image FROM pin WHERE promoter_id = ${id} LIMIT 6`
+  const cover_values = await pgClient.query(cover_sql)
+  const cover = cover_values.rows.map(x => x.image)
+
   console.log('promoter:', promoter)
   console.log('promoterSocial:', promoterSocial)
   console.log('promoterTrend:', promoterTrend)
@@ -470,6 +474,7 @@ apiRoutes.post('/promoter', async (req, res) => {
     promoter,
     promoterSocial,
     promoterTrend,
+    cover,
   })
 })
 
