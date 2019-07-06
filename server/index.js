@@ -768,9 +768,23 @@ apiRoutes.post('/searchTest', async (req, res) => {
       --  TRUE
       --  AND pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
       --
+      -- query without duplicates
+      --SELECT
+      --  DISTINCT pin.*,
+      --  FIRST_VALUE(pd.shop) OVER (PARTITION BY pd.domain ORDER BY pd.shop ASC) shop
+      --FROM
+      --  pin
+      --LEFT OUTER JOIN
+      --  pin_domain pd
+      --ON
+      --  pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
+      --WHERE true
+      --  ${shop}
+      --
+      -- query with duplicates
       SELECT
         DISTINCT pin.*,
-        FIRST_VALUE(pd.shop) OVER (PARTITION BY pd.domain ORDER BY pd.shop ASC) shop
+        pd.shop shop
       FROM
         pin
       LEFT OUTER JOIN
