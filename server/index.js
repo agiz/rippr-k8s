@@ -705,7 +705,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   const selectedCountries = 'selectedCountries' in req.body ? `profile.country_code IN (${req.body.selectedCountries.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'true'
   const daysActive = 'daysActive' in req.body ? `da.days_active >= ${sqlstring.escape(req.body.daysActive)}` : 'true'
-  const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true
+  const isShopify = 'isShopify' in req.body ? `p1.is_shopify = ${sqlstring.escape(req.body.isShopify)}` : true // TODO: remove that when only `shop` is used!
   const shop = 'shop' in req.body && req.body.shop.length > 0 ? `AND shop IN (${req.body.shop.map(x => `${sqlstring.escape(x)}`).join(',')})` : 'AND true'
   // 1 - shopify
   // 2 - woocommerce
@@ -751,12 +751,12 @@ apiRoutes.post('/searchTest', async (req, res) => {
   const sql_pin_crawl = `
     WITH p1 AS
     (
-      --SELECT
-      --  *
-      --FROM
-      --  pin
-      --WHERE true
-      --AND ${language}
+      SELECT
+        *
+      FROM
+        pin
+      WHERE true
+      AND ${language}
       --
       --SELECT
       --  DISTINCT pin.*,
@@ -782,17 +782,17 @@ apiRoutes.post('/searchTest', async (req, res) => {
       --  ${shop}
       --
       -- query with duplicates
-      SELECT
-        DISTINCT pin.*,
-        pd.shop shop
-      FROM
-        pin
-      LEFT OUTER JOIN
-        pin_domain pd
-      ON
-        pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
-      WHERE true
-        ${shop}
+      --SELECT
+      --  DISTINCT pin.*,
+      --  pd.shop shop
+      --FROM
+      --  pin
+      --LEFT OUTER JOIN
+      --  pin_domain pd
+      --ON
+      --  pd.domain = subSTRING(pin.ad_url FROM '(.*://[^/]*)')
+      --WHERE true
+      --  ${shop}
     )
     ,
     pc1 AS
