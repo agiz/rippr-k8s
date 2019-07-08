@@ -891,7 +891,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       p1.is_shopify,
       p1.language,
       da.days_active,
-      p1.shop
+      --p1.shop
     FROM
       p1,
       pc1,
