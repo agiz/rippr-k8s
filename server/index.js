@@ -756,7 +756,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
       FROM
         pin
       WHERE true
-      AND ${language}
+      --AND ${language}
       --
       --SELECT
       --  DISTINCT pin.*,
