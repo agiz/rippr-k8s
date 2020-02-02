@@ -8,6 +8,7 @@ const cookieParser = require('cookie-parser')
 const cors = require('cors')
 const dns = require('dns')
 const express = require('express')
+const Joi = require('@hapi/joi')
 const LRU = require('lru-cache')
 const morgan = require('morgan')
 const Router = require('express-promise-router')
@@ -670,6 +671,28 @@ apiRoutes.delete('/keyword', async (req, res) => {
   }
 
   res.status(204).send()
+})
+
+apiRoutes.post('/searchEs', async (req, res) => {
+  console.log("(route) POST /searchEs")
+
+  const schema = Joi.object().keys({
+    country: Joi.array().items(Joi.string()).allow(null),
+    dateRange: Joi.object({ start: Joi.date(), end: Joi.date() }),
+    daysActive: Joi.number().min(1),
+    language: Joi.array().items(Joi.string()).allow(null),
+    saves: Joi.object({ gte: Joi.number().min(0), lte: Joi.number().min(1) }),
+    shop: Joi.array().items(Joi.string()).allow(null),
+    term: Joi.string().max(255),
+    sort: Joi.array().items(Joi.object({ [sortBy]: Joi.object({ order: Joi.string() }) })),
+    daysActive: Joi.number().min(1).max(92),
+  })
+
+  const out = {
+    schema
+  }
+
+  res.json(out)
 })
 
 // get all pins matching the keyword
