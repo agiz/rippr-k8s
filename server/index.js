@@ -673,8 +673,82 @@ apiRoutes.delete('/keyword', async (req, res) => {
   res.status(204).send()
 })
 
+const sortedByOption = {
+  createdAt: 'created_at',
+  saves: 'saves',
+  daysActive: 'days_active',
+}
+// Available sorted by options.
+
 apiRoutes.post('/searchEs', async (req, res) => {
   console.log("(route) POST /searchEs")
+
+  const today = new Date().toISOString().split('T')[0]
+  const threeMonthsAgo = new Date(today)
+  threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3)
+
+  const dateRange = 'dateRange' in req.body
+  ? req.body.dateRange : {
+    start: threeMonthsAgo.toISOString().split('T')[0],
+    end: today
+  }
+
+  const period = Math.ceil((new Date(dateRange.end).getTime()
+  - new Date(dateRange.start).getTime()) / 1000.0 / 60 / 60 / 24)
+
+  if (period > 93) {
+    res
+    .status(400)
+    .json({ error: 'Time span cannot be longer than 3 months.' })
+  }
+
+  const sortBy = 'sortBy' in req.body && req.body.sortBy in sortedByOption
+  ? sortedByOption[req.body.sortBy] : 'created_at'
+
+  const id = 'id' in req.body ? req.body.id : 0
+
+  const cutoffValue = 'id' in req.body ? req.body.cutoffValue : 0
+
+  const term = 'term' in req.body && req.body.term.length > 0
+  ? `*${req.body.term}*` : '*'
+
+  const bigAdvertisers = 'bigAdvertisers' in req.body
+  ? req.body.bigAdvertisers : false
+
+  const country = 'country' in req.body
+  ? req.body.country : null
+
+  const daysActive = 'daysActive' in req.body ? parseInt(req.body.daysActive) : 1
+
+  const isShopify = 'isShopify' in req.body ? req.body.isShopify : false
+
+  // const shop = 'shop' in req.body && req.body.shop.length > 0
+  // ? req.body.shop : null
+  // 1 - shopify
+  // 2 - woocommerce
+  // 3 - clickfunnels
+  // 4 - advertorials
+
+  const shop = isShopify ? [
+    'shopify',
+    'clickfunnels',
+    'woocommerce',
+    'advertorials',
+    // '0',
+  ] : null
+
+  const saveRange = 'saveRange' in req.body
+  ? req.body.saveRange : { start: 0, end: 999999999 }
+
+  const saves = {
+    gte: parseInt(saveRange.start),
+    lte: parseInt(saveRange.end),
+  }
+
+  const language = 'language' in req.body && req.body.language.length > 0
+  ? req.body.language : null
+
+  const sort = [{ [sortBy]: { order: 'desc' } }]
 
   const schema = Joi.object().keys({
     country: Joi.array().items(Joi.string()).allow(null),
@@ -688,11 +762,43 @@ apiRoutes.post('/searchEs', async (req, res) => {
     daysActive: Joi.number().min(1).max(92),
   })
 
-  const out = {
-    schema
+  const obj = {
+    country,
+    dateRange,
+    daysActive,
+    language,
+    saves,
+    shop,
+    term,
+    sort,
+    daysActive,
   }
 
-  res.json(out)
+  const o = obj // TODO: remove
+
+  try {
+    await schema.validateAsync(obj)
+
+    if (daysActive > 1 || sortBy === 'days_active') {
+      // const o = await esDaysActive(obj)
+      res.json(o)
+    } else {
+      // const o = await esCreatedAt(obj)
+      res.json(o)
+    }
+  } catch (error) {
+    console.error(error)
+
+    const er = 'details' in error && Array.isArray(error.details) &&
+    error.details.length > 0 && 'message' in error.details[0] ?
+    error.details[0].message : error
+
+    res
+    .status(404)
+    .json({
+      error: er,
+    })
+  }
 })
 
 // get all pins matching the keyword
