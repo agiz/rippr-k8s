@@ -1159,8 +1159,9 @@ apiRoutes.post('/pindetails', async (req, res) => {
     MAX(saves) saves, MAX(repin_count) repin_count,
     MIN(created_at) created_at, MAX(last_repin_date) last_repin_date
     FROM pin_crawl
-    WHERE keyword = '${keyword}' AND
-    pin_id = ${id}
+    WHERE TRUE
+    -- AND keyword = '${keyword}'
+    AND pin_id = ${id}
     GROUP BY 1
     ORDER BY crawled_date;`
 
