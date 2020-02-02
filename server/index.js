@@ -715,8 +715,8 @@ apiRoutes.post('/searchEs', async (req, res) => {
   const bigAdvertisers = 'bigAdvertisers' in req.body
   ? req.body.bigAdvertisers : false
 
-  const country = 'country' in req.body
-  ? req.body.country : null
+  const country = 'selectedCountries' in req.body
+  ? req.body.selectedCountries : null
 
   const daysActive = 'daysActive' in req.body ? parseInt(req.body.daysActive) : 1
 
