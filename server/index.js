@@ -681,8 +681,8 @@ const sortedByOption = {
 }
 // Available sorted by options.
 
-apiRoutes.post('/searchEs', async (req, res) => {
-  console.log("(route) POST /searchEs")
+apiRoutes.post('/searchTest', async (req, res) => {
+  console.log("(route) POST /searchTest")
 
   const today = new Date().toISOString().split('T')[0]
   const threeMonthsAgo = new Date(today)
@@ -801,8 +801,8 @@ apiRoutes.post('/searchEs', async (req, res) => {
 })
 
 // get all pins matching the keyword
-apiRoutes.post('/searchTest', async (req, res) => {
-  console.log("(route) POST /searchTest")
+apiRoutes.post('/searchTestOld', async (req, res) => {
+  console.log("(route) POST /searchTestOld")
 
   const sortMap = {
     id: 'pc1.created_at DESC, pc1.pin_crawl_id DESC',

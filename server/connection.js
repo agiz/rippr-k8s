@@ -3,13 +3,7 @@ const keys = require('./keys')
 
 const node = keys.esHost
 
-console.log('Elasticsearch host:', node)
-
 const client = new Client({ node })
-
-console.log('client:')
-console.log(client)
-console.log('client end')
 
 const checkConnection = async () => {
   let isConnected = false
