@@ -26,6 +26,8 @@ spec:
               value: '5432'
             - name: POSTGRES_DB_NAME
               value: 'ar1'
+            - name: ES_HOST
+              value: 'http://instance-1:9200'
             # [START cloudsql_secrets]
             - name: POSTGRES_DB_USER
               valueFrom:

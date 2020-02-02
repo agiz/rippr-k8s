@@ -16,6 +16,7 @@ const sqlstring = require('sqlstring')
 const { Pool } = require('pg')
 
 const keys = require('./keys')
+const { esCreatedAt, esDaysActive, } = require('./es_search_engine')
 
 const app = express()
 
@@ -774,16 +775,14 @@ apiRoutes.post('/searchEs', async (req, res) => {
     daysActive,
   }
 
-  const o = obj // TODO: remove
-
   try {
     await schema.validateAsync(obj)
 
     if (daysActive > 1 || sortBy === 'days_active') {
-      // const o = await esDaysActive(obj)
+      const o = await esDaysActive(obj)
       res.json(o)
     } else {
-      // const o = await esCreatedAt(obj)
+      const o = await esCreatedAt(obj)
       res.json(o)
     }
   } catch (error) {
