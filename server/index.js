@@ -708,7 +708,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   const id = 'id' in req.body ? req.body.id : 0
 
-  const from = 'id' in req.body ? req.body.cutoffValue : 0
+  const from = 'cutoffValue' in req.body ? req.body.cutoffValue : 0
 
   const term = 'term' in req.body && req.body.term.length > 0
   ? `*${req.body.term}*` : '*'
