@@ -708,7 +708,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
 
   const id = 'id' in req.body ? req.body.id : 0
 
-  const cutoffValue = 'id' in req.body ? req.body.cutoffValue : 0
+  const from = 'id' in req.body ? req.body.cutoffValue : 0
 
   const term = 'term' in req.body && req.body.term.length > 0
   ? `*${req.body.term}*` : '*'
@@ -761,6 +761,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
     term: Joi.string().max(255),
     sort: Joi.array().items(Joi.object({ [sortBy]: Joi.object({ order: Joi.string() }) })),
     daysActive: Joi.number().min(1).max(92),
+    from: Joi.number().min(0),
   })
 
   const obj = {
@@ -773,6 +774,7 @@ apiRoutes.post('/searchTest', async (req, res) => {
     term,
     sort,
     daysActive,
+    from,
   }
 
   try {

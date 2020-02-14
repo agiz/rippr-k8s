@@ -10,10 +10,10 @@ const fields = [
   'ad_url_lc',
 ]
 
-const esCreatedAt = async ({ country, dateRange, language, saves, shop, term, sort }) => {
+const esCreatedAt = async ({ country, dateRange, language, saves, shop, term, sort, from }) => {
   const sortBy = Object.keys(sort[0])[0]
   const size = 10
-  const from = 0 // offset
+  // const from = 0 // offset
 
   const startDate = dateRange.start
   const endDate = dateRange.end
@@ -141,10 +141,10 @@ const esCreatedAt = async ({ country, dateRange, language, saves, shop, term, so
   return out
 }
 
-const esDaysActive = async ({ country, dateRange, daysActive, language, saves, shop, term, sort }) => {
+const esDaysActive = async ({ country, dateRange, daysActive, language, saves, shop, term, sort, from }) => {
   const sortBy = Object.keys(sort[0])[0]
   const size = 10
-  const from = 0 // offset
+  // const from = 0 // offset
 
   const startDate = dateRange.start
   const endDate = dateRange.end
